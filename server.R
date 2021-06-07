@@ -24,9 +24,10 @@ date_selection <- reactive({
   # Create date sequence
   outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
   outSeq <- format(as.Date(outSeq, "%Y_%m_%d"))
-  browser()
+  outSeq
+
 
 })
 
-
+output$dateSelection <- renderTable(date_selection())
 })
