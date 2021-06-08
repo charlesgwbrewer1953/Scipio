@@ -105,6 +105,7 @@ retrieve_Db <- reactive({
   inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
 
   # Read db loop
+  withProgress(message = "Reading remote database",
   for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
     inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
 
@@ -133,15 +134,16 @@ retrieve_Db <- reactive({
       },
       finally = {
         message("tryCatch database read finished")
+        incProgress(1/length(inserted_date_seq))
       }
     )  # end of tryCatch
-  }
+  } ) # Enf of for loop
   # On first pass
   dbDisconnect(conR)
   if(first_pass == TRUE)({data_selection_frame <<- data_selection_frame_append
                          first_pass <<- FALSE})
 
-  data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
+  data_selection_frame <<- plyr::join(data_selection_frame, data_selection_frame_append)
 
   print("end of loop")
   return(data_selection_frame)
