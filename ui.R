@@ -31,6 +31,8 @@ dashboardPage(
               ), # End of sidebar
 
     dashboardBody(
-        fluidRow(tableOutput("dateSelection"), tableOutput("date_lookup"))
+        fluidRow(tableOutput("dateSelection"),
+                 tableOutput("date_lookup")
+                 )
     )
     ) # End of dashboardPage

@@ -8,9 +8,20 @@ library(syuzhet)
 library(plotly)
 library(data.table)
 library(plyr)
+library(dplyr)
+library(RMariaDB)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
+
+  print("server 1 - Set up db connect")
+  remoteuserpassword <- "m3t1sz"
+  conR <- dbConnect(RMariaDB::MariaDB(),
+                    dbname = 'metis', 'metis',
+                    password = remoteuserpassword,
+                    host = "178.62.8.181", port = 3306)
+  print("Server 1 - Connected remote 1")
+  dbListTables(conR)
 
 ##########
 #
@@ -38,7 +49,7 @@ shinyServer(function(input, output) {
       check_date_list = list(Action = FALSE, start_date = date1, end_date = date2)
 
     }
-    print(check_date_list)
+#    print(check_date_list)
     return(check_date_list)
   }
 
@@ -72,6 +83,9 @@ shinyServer(function(input, output) {
 # 1 Get start and end dates
 
 date_selection <- reactive({
+  start_timeDS <- Sys.time()
+
+
   cycle_dates <- check_dates(input$dateRange[1], input$dateRange[2])
   print("Pre first pass test")
   print(first_pass)
@@ -82,16 +96,24 @@ date_selection <- reactive({
   print( cycle_dates)
   outSeq <- seq(as.Date(cycle_dates$start_date) , as.Date(cycle_dates$end_date), by = "day")
   outSeq <- format(as.Date(outSeq, "%Y-%m-%d"))
+  end_timeP <- Sys.time()
+  print("date_selection")
   return(outSeq)
+  end_timeDS <- Sys.time()
+  print("Time DS")
+  print(end_timeDS - start_timeDS)
+
 })
 
 
 retrieve_Db <- reactive({
+  start_timerDB <- Sys.time()
   print("server 1 - Set up db connect")
   remoteuserpassword <- "m3t1sz"
   conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
   print("Server 1 - Connected remote 1")
-  dbListTables(conR)
+ listtab <-  dbListTables(conR)
+ print(listtab)
   data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
                                             country = character() , region = character(),
                                             syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
@@ -107,7 +129,9 @@ retrieve_Db <- reactive({
   # Read db loop
   withProgress(message = "Reading remote database",
   for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
+    print(paste("Loop count", i))
     inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
+    print(paste("Loop", i, "Inserted date", inserted_date))
 
 
     queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
@@ -126,7 +150,8 @@ retrieve_Db <- reactive({
         query1  <- dbGetQuery(conR, queryScript)
         query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
         data_selection_frame_append <- rbind(data_selection_frame_append, query1)
-        print("Data_selection_frame_append", nrow(data_selection_frame_append))
+        print("Data_selection_frame_append")
+        print(nrow(data_selection_frame_append))
       },
       error = function(e){
         message(paste0("Error message on date: ", inserted_date, " "))
@@ -140,13 +165,33 @@ retrieve_Db <- reactive({
   } ) # Enf of for loop
   # On first pass
   dbDisconnect(conR)
-  if(first_pass == TRUE)({data_selection_frame <<- data_selection_frame_append
-                         first_pass <<- FALSE})
 
-  data_selection_frame <<- plyr::join(data_selection_frame, data_selection_frame_append)
+  # if(first_pass == TRUE)({data_selection_frame <<- data_selection_frame_append
+  #                        first_pass <<- FALSE})
+  print("Remote db disconnected")
 
-  print("end of loop")
+start_timeP <- Sys.time()
+data_selection_frame_append$item_date_published <- as.Date(data_selection_frame_append$item_date_published, format("%Y-%m-%d"))
+str(data_selection_frame)
+str(data_selection_frame_append)
+data_selection_frame_appendX <<- data_selection_frame_append
+data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
+data_selection_frame <<- unique(data_selection_frame )
+end_timeP <- Sys.time()
+print("plyr")
+print(end_timeP - start_timeP)
+
+
+end_timerDB <- Sys.time()
+print("G2")
+print(end_timerDB - start_timerDB)
   return(data_selection_frame)
+})
+
+list_head_DB <- reactive({
+  small_out <- retrieve_Db()
+  return(head(small_out))
+
 })
 
 ##########
@@ -155,8 +200,17 @@ retrieve_Db <- reactive({
 #
 #
 ##########
-
-
+start_timeG1 <- Sys.time()
+print("Start first graphic output")
 output$dateSelection <- renderTable(date_selection())
+end_timeG1 <- Sys.time()
+print("G1")
+print(end_timeG1 - start_timeG1)
+start_timeG2 <- Sys.time()
+print("Start second graphic output")
+#output$date_lookup <- renderTable(list_head_DB())
 output$date_lookup <- renderTable(retrieve_Db())
+end_timeG2 <- Sys.time()
+print("G2")
+print(end_timeG2 - start_timeG2)
 })
