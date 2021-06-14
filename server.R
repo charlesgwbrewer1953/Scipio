@@ -30,9 +30,6 @@ shinyServer(function(input, output) {
 #
 ##########
 
-
-
-
 # If input$date1 < previous earliest date read, indicates database read action required
 # Takes earlier of previous earliest date and input$date1 and returns this as the start date
 # Takes last earliest dat and returns this as end of lookup sequence date
@@ -53,7 +50,12 @@ shinyServer(function(input, output) {
     return(check_date_list)
   }
 
-
+remote_Connect <- function(){
+  print("server 1 - Set up db connect")
+  remoteuserpassword <- "m3t1sz"
+  conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
+  return(conR)
+}
   ##########
   #
   #Read remote database
@@ -84,8 +86,6 @@ shinyServer(function(input, output) {
 
 date_selection <- reactive({
   start_timeDS <- Sys.time()
-
-
   cycle_dates <- check_dates(input$dateRange[1], input$dateRange[2])
   print("Pre first pass test")
   print(first_pass)
@@ -107,11 +107,7 @@ date_selection <- reactive({
 
 
 retrieve_Db <- reactive({
-  start_timerDB <- Sys.time()
-  print("server 1 - Set up db connect")
-  remoteuserpassword <- "m3t1sz"
-  conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
-  print("Server 1 - Connected remote 1")
+remote_Connect()
  listtab <-  dbListTables(conR)
  print(listtab)
   data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
@@ -125,9 +121,10 @@ retrieve_Db <- reactive({
                                             hash_value = character())
   # Reformat dates
   inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
-
+  if(first_pass == TRUE | input$dateRange[1] < global_start_date){
   # Read db loop
   withProgress(message = "Reading remote database",
+
   for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
     print(paste("Loop count", i))
     inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
@@ -162,7 +159,7 @@ retrieve_Db <- reactive({
         incProgress(1/length(inserted_date_seq))
       }
     )  # end of tryCatch
-  } ) # Enf of for loop
+  } ) }# Enf of for loop
   # On first pass
   dbDisconnect(conR)
 
@@ -172,24 +169,16 @@ retrieve_Db <- reactive({
 
 start_timeP <- Sys.time()
 data_selection_frame_append$item_date_published <- as.Date(data_selection_frame_append$item_date_published, format("%Y-%m-%d"))
-str(data_selection_frame)
-str(data_selection_frame_append)
-data_selection_frame_appendX <<- data_selection_frame_append
 data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
 data_selection_frame <<- unique(data_selection_frame )
 end_timeP <- Sys.time()
-print("plyr")
-print(end_timeP - start_timeP)
 
-
-end_timerDB <- Sys.time()
-print("G2")
-print(end_timerDB - start_timerDB)
   return(data_selection_frame)
 })
 
 list_head_DB <- reactive({
   small_out <- retrieve_Db()
+  small_out$item_date_published <- as.character(small_out$item_date_published)
   return(head(small_out))
 
 })
@@ -200,17 +189,11 @@ list_head_DB <- reactive({
 #
 #
 ##########
-start_timeG1 <- Sys.time()
-print("Start first graphic output")
+
 output$dateSelection <- renderTable(date_selection())
-end_timeG1 <- Sys.time()
-print("G1")
-print(end_timeG1 - start_timeG1)
-start_timeG2 <- Sys.time()
-print("Start second graphic output")
+
 #output$date_lookup <- renderTable(list_head_DB())
 output$date_lookup <- renderTable(retrieve_Db())
-end_timeG2 <- Sys.time()
-print("G2")
-print(end_timeG2 - start_timeG2)
+output$reduced_Table <- renderTable(list_head_DB())
+
 })

@@ -9,6 +9,7 @@ library(shinyWidgets)
 library(shinysky)
 library(dashboardthemes)
 library(bslib)
+library(tidyverse)
 library(plotly)
 
 dashboardPage(
@@ -32,7 +33,8 @@ dashboardPage(
 
     dashboardBody(
         fluidRow(tableOutput("dateSelection"),
-                 tableOutput("date_lookup")
+      #           tableOutput("date_lookup"),
+                 tableOutput("reduced_Table")
                  )
     )
     ) # End of dashboardPage
