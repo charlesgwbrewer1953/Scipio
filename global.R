@@ -2,6 +2,7 @@
 
 # Initialization of variables and initial empty dataframe
 library(tibble)
+rm(list = ls())
 global_start_date <- Sys.Date()
 global_end_date <- Sys.Date()
 first_pass = TRUE
@@ -16,7 +17,7 @@ data_selection_frame <- tibble(ext_name = character(), item_title = character(),
                                    hash_value = character(), stringsAsFactors = FALSE)
 
 data_selection_frame$item_date_published <- as.Date(data_selection_frame$item_date_published, format("%Y-%m-%d"))
-
+# browser()
 data_selection_frame_appendX <- tibble(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
                                country = character() , region = character(),
                                syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),

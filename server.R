@@ -15,6 +15,7 @@ library(RMariaDB)
 shinyServer(function(input, output) {
 
   print("server 1 - Set up db connect")
+  # browser()
   remoteuserpassword <- "m3t1sz"
   conR <- dbConnect(RMariaDB::MariaDB(),
                     dbname = 'metis', 'metis',
@@ -35,14 +36,14 @@ shinyServer(function(input, output) {
 # Takes last earliest dat and returns this as end of lookup sequence date
 # If input$date1 not < than previus earliest data returns FALSE indicating no read required
   check_dates <- function(date1, date2){
+    # browser()
     if(date1 < global_start_date){
       print("Date < than previous minimum")
       check_date_list = list(Action = TRUE, start_date = date1, end_date = global_start_date)
       global_start_date <<- date1
-
     }else{
       print("Date >= previous minimum")
-
+      first_pass <<- FALSE
       check_date_list = list(Action = FALSE, start_date = date1, end_date = date2)
 
     }
@@ -65,23 +66,24 @@ remote_Connect <- function(){
   #
   ##########
 
-read_Remote <- function(){    data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
-                                                                        country = character() , region = character(),
-                                                                        syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
-                                                                        nrc_score_anger = numeric(), nrc_score_anticipation = numeric(), nrc_score_disgust = numeric(), nrc_score_fear = numeric(),
-                                                                        nrc_score_joy = numeric(), nrc_score_positive = numeric(), nrc_score_negative = numeric(),
-                                                                        nrc_score_sadness = numeric(), nrc_score_surprise = numeric(), nrc_score_trust = numeric(),
-                                                                        loughran_frame_constraining = numeric(), loughran_frame_litigious = numeric(), loughran_frame_negative = numeric(),
-                                                                        loughran_frame_positive = numeric(), loughran_frame_uncertain = numeric(),
-                                                                        hash_value = character())
-withProgress(message = "Reading remote database",
-             for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
-               print(paste("Loop count", i))
-               inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
-               print(paste("Loop", i, "Inserted date", inserted_date))
+read_Remote <- function(inserted_date_seq){
+  data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
+                                            country = character() , region = character(),
+                                            syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
+                                            nrc_score_anger = numeric(), nrc_score_anticipation = numeric(), nrc_score_disgust = numeric(), nrc_score_fear = numeric(),
+                                            nrc_score_joy = numeric(), nrc_score_positive = numeric(), nrc_score_negative = numeric(),
+                                            nrc_score_sadness = numeric(), nrc_score_surprise = numeric(), nrc_score_trust = numeric(),
+                                            loughran_frame_constraining = numeric(), loughran_frame_litigious = numeric(), loughran_frame_negative = numeric(),
+                                            loughran_frame_positive = numeric(), loughran_frame_uncertain = numeric(),
+                                            hash_value = character())
+  withProgress(message = "Reading remote database",
+               for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
+#                 print(paste("Loop count", i))
+                 inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
+#                 print(paste("Loop", i, "Inserted date", inserted_date))
 
 
-               queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
+                 queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
             syuzhet_score, afinn_score, bing_score,
             nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
             nrc_score_joy, nrc_score_positive, nrc_score_negative,
@@ -91,31 +93,31 @@ withProgress(message = "Reading remote database",
             md5(concat(item_title, item_date_published)) AS hash_value
                              FROM sa_RSS_library", inserted_date, "
                             ;" )
-               tryCatch(
-                 expr = {
-                   try_date <- paste0("sa_RSS_library", inserted_date)
-                   query1  <- dbGetQuery(conR, queryScript)
-                   query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
-                   data_selection_frame_append <- rbind(data_selection_frame_append, query1)
-                   print("Data_selection_frame_append")
-                   print(nrow(data_selection_frame_append))
-                 },
-                 error = function(e){
-                   message(paste0("Error message on date: ", inserted_date, " "))
-                   message(queryScript)
-                 },
-                 finally = {
-                   message("tryCatch database read finished")
-                   incProgress(1/length(inserted_date_seq))
-                 }
-               )       # end of tryCatch
-             }         # end of for loop
+                 tryCatch(
+                   expr = {
+                     try_date <- paste0("sa_RSS_library", inserted_date)
+                     query1  <- dbGetQuery(conR, queryScript)
+                     query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
+                     data_selection_frame_append <- rbind(data_selection_frame_append, query1)
+                     # print("Data_selection_frame_append")
+                     # print(nrow(data_selection_frame_append))
+                   },
+                   error = function(e){
+                     message(paste0("Error message on date: ", inserted_date, " "))
+                     message(queryScript)
+                   },
+                   finally = {
+#                     message("tryCatch database read finished")
+                     incProgress(1/length(inserted_date_seq))
+                   }
+                 )       # end of tryCatch
+               }         # end of for loop
 
-) }
+  ) # End of withProgress
+return(data_selection_frame_append)
+}
 
 
-
-#############################################################################
 ##########
 #
 #Reactive functions
@@ -134,105 +136,41 @@ withProgress(message = "Reading remote database",
 # 1 Get start and end dates
 
 date_selection <- reactive({
-  start_timeDS <- Sys.time()
   cycle_dates <- check_dates(input$dateRange[1], input$dateRange[2])
-  print("Pre first pass test")
-  print(first_pass)
-  print(cycle_dates)
+  # browser()
   ifelse(first_pass, first_pass<<- TRUE, cycle_dates$end_date <- cycle_dates$end_date -1)
-  print("Post first pass test")
-  print(first_pass)
-  print( cycle_dates)
-  outSeq <- seq(as.Date(cycle_dates$start_date) , as.Date(cycle_dates$end_date), by = "day")
-  outSeq <- format(as.Date(outSeq, "%Y-%m-%d"))
-  end_timeP <- Sys.time()
-  print("date_selection")
-  return(outSeq)
-  end_timeDS <- Sys.time()
-  print("Time DS")
-  print(end_timeDS - start_timeDS)
+  outSeq <- as.character( seq(as.Date(cycle_dates$start_date) , as.Date(cycle_dates$end_date), by = "day"))
 
+  return(outSeq)
 })
 
 
 retrieve_Db <- reactive({
-
-remote_Connect()
-
-  # Reformat dates
+  if(input$dateRange[1] < global_start_date) print("Globals")
+  # browser()
+  if(input$dateRange[1]< global_start_date){
+  remote_Connect()     # Connect to remote db
   inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
-  if(first_pass == TRUE | input$dateRange[1] < global_start_date){
-  # Read db loop
-    data_selection_frame_append<-
-
-    data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
-                                              country = character() , region = character(),
-                                              syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
-                                              nrc_score_anger = numeric(), nrc_score_anticipation = numeric(), nrc_score_disgust = numeric(), nrc_score_fear = numeric(),
-                                              nrc_score_joy = numeric(), nrc_score_positive = numeric(), nrc_score_negative = numeric(),
-                                              nrc_score_sadness = numeric(), nrc_score_surprise = numeric(), nrc_score_trust = numeric(),
-                                              loughran_frame_constraining = numeric(), loughran_frame_litigious = numeric(), loughran_frame_negative = numeric(),
-                                              loughran_frame_positive = numeric(), loughran_frame_uncertain = numeric(),
-                                              hash_value = character())
-    withProgress(message = "Reading remote database",
-  for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
-    print(paste("Loop count", i))
-    inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
-    print(paste("Loop", i, "Inserted date", inserted_date))
 
 
-    queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
-            syuzhet_score, afinn_score, bing_score,
-            nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
-            nrc_score_joy, nrc_score_positive, nrc_score_negative,
-            nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
-            loughran_frame_constraining, loughran_frame_litigious,
-            loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
-            md5(concat(item_title, item_date_published)) AS hash_value
-                             FROM sa_RSS_library", inserted_date, "
-                            ;" )
-    tryCatch(
-      expr = {
-        try_date <- paste0("sa_RSS_library", inserted_date)
-        query1  <- dbGetQuery(conR, queryScript)
-        query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
-        data_selection_frame_append <- rbind(data_selection_frame_append, query1)
-        print("Data_selection_frame_append")
-        print(nrow(data_selection_frame_append))
-      },
-      error = function(e){
-        message(paste0("Error message on date: ", inserted_date, " "))
-        message(queryScript)
-      },
-      finally = {
-        message("tryCatch database read finished")
-        incProgress(1/length(inserted_date_seq))
-      }
-     )       # end of tryCatch
-    }         # end of for loop
-  )         # end of with progress function
-}       # End of 'if'
-  # On first pass
+  data_selection_frame_append  <- read_Remote(inserted_date_seq)
   dbDisconnect(conR)
-
-  # if(first_pass == TRUE)({data_selection_frame <<- data_selection_frame_append
-  #                        first_pass <<- FALSE})
   print("Remote db disconnected")
+  data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
+  global_start_date <<-input$dateRange[1]}else{
+    print("Short circuit")
+  }
+  data_selection_frame <<- unique(data_selection_frame )
 
-start_timeP <- Sys.time()
-data_selection_frame_append$item_date_published <- as.Date(data_selection_frame_append$item_date_published, format("%Y-%m-%d"))
-data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
-data_selection_frame <<- unique(data_selection_frame )
-end_timeP <- Sys.time()
 
   return(data_selection_frame)
 })
 
+# Small return table for test purposes
 list_head_DB <- reactive({
   small_out <- retrieve_Db()
   small_out$item_date_published <- as.character(small_out$item_date_published)
   return(head(small_out))
-
 })
 
 ##########
@@ -245,7 +183,7 @@ list_head_DB <- reactive({
 output$dateSelection <- renderTable(date_selection())
 
 #output$date_lookup <- renderTable(list_head_DB())
-output$date_lookup <- renderTable(retrieve_Db())
+#output$date_lookup <- renderTable(retrieve_Db())
 output$reduced_Table <- renderTable(list_head_DB())
 
 })
