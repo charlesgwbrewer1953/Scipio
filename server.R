@@ -82,7 +82,7 @@ read_Remote <- function(inserted_date_seq){
                  inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
 #                 print(paste("Loop", i, "Inserted date", inserted_date))
 
-
+                  print(paste("Date under retrieval:", inserted_date))
                  queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
             syuzhet_score, afinn_score, bing_score,
             nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
@@ -139,17 +139,17 @@ date_selection <- reactive({
   cycle_dates <- check_dates(input$dateRange[1], input$dateRange[2])
   # browser()
   ifelse(first_pass, first_pass<<- TRUE, cycle_dates$end_date <- cycle_dates$end_date -1)
-  outSeq <- as.character( seq(as.Date(cycle_dates$start_date) , as.Date(cycle_dates$end_date), by = "day"))
+  outSeq <- as.character(seq(as.Date(cycle_dates$start_date) , as.Date(cycle_dates$end_date), by = "day")) # as.character fixes bug
 
   return(outSeq)
 })
 
 
 retrieve_Db <- reactive({
-  if(input$dateRange[1] < global_start_date) print("Globals")
   # browser()
-  if(input$dateRange[1]< global_start_date){
-  remote_Connect()     # Connect to remote db
+  if(input$dateRange[1]< global_start_date | first_pass == TRUE){
+    first_pass <<- FALSE   # Set first_pass flag to FALSE
+  remote_Connect()         # Connect to remote db
   inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
 
 
@@ -158,9 +158,10 @@ retrieve_Db <- reactive({
   print("Remote db disconnected")
   data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
   global_start_date <<-input$dateRange[1]}else{
-    print("Short circuit")
+    print("No new db records required")
   }
   data_selection_frame <<- unique(data_selection_frame )
+
 
 
   return(data_selection_frame)
@@ -181,9 +182,6 @@ list_head_DB <- reactive({
 ##########
 
 output$dateSelection <- renderTable(date_selection())
-
-#output$date_lookup <- renderTable(list_head_DB())
-#output$date_lookup <- renderTable(retrieve_Db())
 output$reduced_Table <- renderTable(list_head_DB())
 
 })
