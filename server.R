@@ -38,8 +38,9 @@ shinyServer(function(input, output) {
   check_dates <- function(date1, date2){
     browser()
     if(date1 < global_start_date){
-      print("Date < than previous minimum")
-      check_date_list = list(Action = TRUE, start_date = date1, end_date = global_start_date)
+      print("Start Date < than previous minimum")
+      if(first_pass != TRUE){global_start_date <<- date1}
+      check_date_list <- list(Action = TRUE, start_date = date1, end_date = global_start_date)
       global_start_date <<- date1
     }else{
       print("Date >= previous minimum")
