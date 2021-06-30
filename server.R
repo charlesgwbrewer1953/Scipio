@@ -35,6 +35,22 @@ shinyServer(function(input, output) {
 # Takes earlier of previous earliest date and input$date1 and returns this as the start date
 # Takes last earliest dat and returns this as end of lookup sequence date
 # If input$date1 not < than previus earliest data returns FALSE indicating no read required
+  check_dates2 <- function(date1, date2){
+    if(first_pass == TRUE){
+      global_start_date <<- date1
+      first_pass <<- FALSE
+      check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = date2)
+    }else{
+      if(date1 < global_start_date){
+        check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = global_start_date - 1)
+        global_start_date <<- date1 # date 1 becomes the new lowest date read
+      }else{
+        chack_date_list2 <- list(Action = FALSE)
+      }
+    }
+  }
+
+
   check_dates <- function(date1, date2){
     browser()
     if(date1 < global_start_date){
