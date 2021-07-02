@@ -15,7 +15,7 @@ library(RMariaDB)
 shinyServer(function(input, output) {
 
   print("server 1 - Set up db connect")
-   browser()
+   # # # browser()
   remoteuserpassword <- "m3t1sz"
   conR <- dbConnect(RMariaDB::MariaDB(),
                     dbname = 'metis', 'metis',
@@ -36,26 +36,29 @@ shinyServer(function(input, output) {
 # Takes last earliest dat and returns this as end of lookup sequence date
 # If input$date1 not < than previus earliest data returns FALSE indicating no read required
   check_dates2 <- function(date1, date2){
+    print("check_dates2()")
     if(first_pass == TRUE){
       global_start_date <<- date1
-      first_pass <<- FALSE
+#      first_pass <<- FALSE
       check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = date2)
     }else{
       if(date1 < global_start_date){
         check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = global_start_date - 1)
         global_start_date <<- date1 # date 1 becomes the new lowest date read
       }else{
-        chack_date_list2 <- list(Action = FALSE)
+        check_date_list2 <- list(Action = FALSE)
       }
     }
+    return(check_date_list2)
   }
 
 
   check_dates <- function(date1, date2){
-    browser()
+    print("Check_dates()")
+    # # # browser()
     if(date1 < global_start_date){
       print("Start Date < than previous minimum")
-      if(first_pass != TRUE){global_start_date <<- date1}
+      if(first_pass == FALSE){global_start_date <<- date1}
       check_date_list <- list(Action = TRUE, start_date = date1, end_date = global_start_date)
       global_start_date <<- date1
     }else{
@@ -69,8 +72,8 @@ shinyServer(function(input, output) {
   }
 
 remote_Connect <- function(){
-  browser()
-  print("server 1 - Set up db connect")
+  # # # browser()
+  print("remote_Connect")
   remoteuserpassword <- "m3t1sz"
   conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
   return(conR)
@@ -85,7 +88,8 @@ remote_Connect <- function(){
   ##########
 
 read_Remote <- function(inserted_date_seq){
-  browser()
+  print("read_RemoteDb")
+  # # # browser()
   data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
                                             country = character() , region = character(),
                                             syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
@@ -155,15 +159,9 @@ return(data_selection_frame_append)
 # 1 Get start and end dates
 
 date_selection <- reactive({
-  cycle_dates <- check_dates(input$dateRange[1], input$dateRange[2])
-   browser()
-  if(first_pass == TRUE){                         # FIRST PASS DATE SETUP
-  cycle_dates$start_date <- input$dateRange[1]    # Retrieve start date = input_start_date
-  cycle_dates$end_date <- input$dateRange[2]      # Retrieve end date =
-  }else{                                          # NON_FIRST PASS
-    cycle_dates$start_date <- input$dateRange[1]
-    cycle_dates$end_date <- global_start_date -1  # Set last retrieval date 1 less than current in-memory date
-    }
+  print("date_selection()")
+  cycle_dates <- check_dates2(input$dateRange[1], input$dateRange[2]) # check_date2() returns
+    # browser()
   outSeq <- as.character(seq(as.Date(cycle_dates$start_date) , as.Date(cycle_dates$end_date), by = "day")) # as.character fixes bug
 
   return(outSeq)
@@ -171,16 +169,20 @@ date_selection <- reactive({
 
 
 retrieve_Db <- reactive({
-   browser()
-  if(input$dateRange[1]< global_start_date | first_pass == TRUE){  # Select where more dates required or first_pass
-    first_pass <<- FALSE   # Set first_pass flag to FALSE
+  print("retrieve_Db")
+     # browser()
+  check_action <- check_dates2(input$dateRange[1], input$dateRange[2]) # Removed while developing function
+  if(check_action$Action == TRUE){
+    print("retrieve_Db: retrieving")
+ # if(input$dateRange[1]< global_start_date | first_pass == TRUE){  # Select where more dates required or first_pass
+  #  first_pass <<- FALSE   # Set first_pass flag to FALSE
   remote_Connect()         # Connect to remote db
 
 
   data_selection_frame_append  <- read_Remote(date_selection())
   dbDisconnect(conR)
   print("Remote db disconnected")
-  browser()
+  # # # browser()
   data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
   global_start_date <<-input$dateRange[1]}else{
     print("No new db records required")
@@ -194,7 +196,7 @@ retrieve_Db <- reactive({
 
 # Small return table for test purposes
 list_head_DB <- reactive({
-  browser()
+  # # # browser()
   small_out <- retrieve_Db()
   small_out$item_date_published <- as.character(small_out$item_date_published)
   return(head(small_out))
