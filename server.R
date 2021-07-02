@@ -38,14 +38,17 @@ shinyServer(function(input, output) {
   check_dates2 <- function(date1, date2){
     print("check_dates2()")
     if(first_pass == TRUE){
+      print("OPTION 1 - first pass")
       global_start_date <<- date1
-#      first_pass <<- FALSE
+      first_pass <<- FALSE
       check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = date2)
     }else{
       if(date1 < global_start_date){
+        "OPTION 2 - Read more records"
         check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = global_start_date - 1)
         global_start_date <<- date1 # date 1 becomes the new lowest date read
       }else{
+        print("OPTION 3 - no more records")
         check_date_list2 <- list(Action = FALSE)
       }
     }
@@ -53,23 +56,23 @@ shinyServer(function(input, output) {
   }
 
 
-  check_dates <- function(date1, date2){
-    print("Check_dates()")
-    # # # browser()
-    if(date1 < global_start_date){
-      print("Start Date < than previous minimum")
-      if(first_pass == FALSE){global_start_date <<- date1}
-      check_date_list <- list(Action = TRUE, start_date = date1, end_date = global_start_date)
-      global_start_date <<- date1
-    }else{
-      print("Date >= previous minimum")
-      first_pass <<- FALSE
-      check_date_list = list(Action = FALSE, start_date = date1, end_date = date2)
-
-    }
-#    print(check_date_list)
-    return(check_date_list)
-  }
+#   check_dates <- function(date1, date2){
+#     print("Check_dates()")
+#     # # # browser()
+#     if(date1 < global_start_date){
+#       print("Start Date < than previous minimum")
+#       if(first_pass == FALSE){global_start_date <<- date1}
+#       check_date_list <- list(Action = TRUE, start_date = date1, end_date = global_start_date)
+#       global_start_date <<- date1
+#     }else{
+#       print("Date >= previous minimum")
+#       first_pass <<- FALSE
+#       check_date_list = list(Action = FALSE, start_date = date1, end_date = date2)
+#
+#     }
+# #    print(check_date_list)
+#     return(check_date_list)
+#   }
 
 remote_Connect <- function(){
   # # # browser()
@@ -127,7 +130,7 @@ read_Remote <- function(inserted_date_seq){
                    },
                    error = function(e){
                      message(paste0("Error message on date: ", inserted_date, " "))
-                     message(queryScript)
+  #                   message(queryScript)
                    },
                    finally = {
 #                     message("tryCatch database read finished")
@@ -160,36 +163,30 @@ return(data_selection_frame_append)
 
 date_selection <- reactive({
   print("date_selection()")
-  cycle_dates <- check_dates2(input$dateRange[1], input$dateRange[2]) # check_date2() returns
-    # browser()
-  outSeq <- as.character(seq(as.Date(cycle_dates$start_date) , as.Date(cycle_dates$end_date), by = "day")) # as.character fixes bug
-
+  outSeq <- as.character(seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")) # as.character fixes bug
+print("FILLER")
   return(outSeq)
 })
 
 
+#
 retrieve_Db <- reactive({
   print("retrieve_Db")
-     # browser()
   check_action <- check_dates2(input$dateRange[1], input$dateRange[2]) # Removed while developing function
   if(check_action$Action == TRUE){
     print("retrieve_Db: retrieving")
- # if(input$dateRange[1]< global_start_date | first_pass == TRUE){  # Select where more dates required or first_pass
-  #  first_pass <<- FALSE   # Set first_pass flag to FALSE
-  remote_Connect()         # Connect to remote db
+    outSeq <- as.character(seq(as.Date(check_action$start_date) , as.Date(check_action$end_date), by = "day"))
 
+    remote_Connect()         # Connect to remote db
+    data_selection_frame_append  <- read_Remote(outSeq)
+    dbDisconnect(conR)
+    print("Remote db disconnected")
 
-  data_selection_frame_append  <- read_Remote(date_selection())
-  dbDisconnect(conR)
-  print("Remote db disconnected")
-  # # # browser()
-  data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
-  global_start_date <<-input$dateRange[1]}else{
-    print("No new db records required")
-  }
+    data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
+    global_start_date <<-input$dateRange[1]}else{
+      print("No new db records required")
+    }
   data_selection_frame <<- unique(data_selection_frame )
-
-
 
   return(data_selection_frame)
 })
