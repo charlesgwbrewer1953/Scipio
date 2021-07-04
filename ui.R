@@ -13,9 +13,11 @@ library(tidyverse)
 library(plotly)
 
 dashboardPage(
+  skin = "green",
     dashboardHeader(
         title = "Media Sentiment Analysis- ", titleWidth = 450
-    ),
+    ),   # End of dashboardHeader
+
               dashboardSidebar(
                   width = 275,
                   shinyDashboardThemes(theme = "purple_gradient"),

@@ -31,10 +31,15 @@ shinyServer(function(input, output) {
 #
 ##########
 
+
+# check_date2()
+# Determines dates for which db must be read
+# If first_pass = TRUE, all dates from input screen
 # If input$date1 < previous earliest date read, indicates database read action required
 # Takes earlier of previous earliest date and input$date1 and returns this as the start date
 # Takes last earliest dat and returns this as end of lookup sequence date
 # If input$date1 not < than previus earliest data returns FALSE indicating no read required
+
   check_dates2 <- function(date1, date2){
     print("check_dates2()")
     if(first_pass == TRUE){
@@ -56,26 +61,7 @@ shinyServer(function(input, output) {
   }
 
 
-#   check_dates <- function(date1, date2){
-#     print("Check_dates()")
-#     # # # browser()
-#     if(date1 < global_start_date){
-#       print("Start Date < than previous minimum")
-#       if(first_pass == FALSE){global_start_date <<- date1}
-#       check_date_list <- list(Action = TRUE, start_date = date1, end_date = global_start_date)
-#       global_start_date <<- date1
-#     }else{
-#       print("Date >= previous minimum")
-#       first_pass <<- FALSE
-#       check_date_list = list(Action = FALSE, start_date = date1, end_date = date2)
-#
-#     }
-# #    print(check_date_list)
-#     return(check_date_list)
-#   }
-
 remote_Connect <- function(){
-  # # # browser()
   print("remote_Connect")
   remoteuserpassword <- "m3t1sz"
   conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
@@ -92,7 +78,6 @@ remote_Connect <- function(){
 
 read_Remote <- function(inserted_date_seq){
   print("read_RemoteDb")
-  # # # browser()
   data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
                                             country = character() , region = character(),
                                             syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
@@ -104,20 +89,20 @@ read_Remote <- function(inserted_date_seq){
                                             hash_value = character())
   withProgress(message = "Reading remote database",
                for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
-#                 print(paste("Loop count", i))
+                 #                 print(paste("Loop count", i))
                  inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
-#                 print(paste("Loop", i, "Inserted date", inserted_date))
+                 #                 print(paste("Loop", i, "Inserted date", inserted_date))
 
-                  print(paste("Date under retrieval:", inserted_date))
+                 print(paste("Date under retrieval:", inserted_date))
                  queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
-            syuzhet_score, afinn_score, bing_score,
-            nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
-            nrc_score_joy, nrc_score_positive, nrc_score_negative,
-            nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
-            loughran_frame_constraining, loughran_frame_litigious,
-            loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
-            md5(concat(item_title, item_date_published)) AS hash_value
-                             FROM sa_RSS_library", inserted_date, "
+                                      syuzhet_score, afinn_score, bing_score,
+                                      nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
+                                      nrc_score_joy, nrc_score_positive, nrc_score_negative,
+                                      nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
+                                      loughran_frame_constraining, loughran_frame_litigious,
+                                      loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
+                                      md5(concat(item_title, item_date_published)) AS hash_value
+                                      FROM sa_RSS_library", inserted_date, "
                             ;" )
                  tryCatch(
                    expr = {
@@ -130,18 +115,18 @@ read_Remote <- function(inserted_date_seq){
                    },
                    error = function(e){
                      message(paste0("Error message on date: ", inserted_date, " "))
-  #                   message(queryScript)
+                     #                   message(queryScript)
                    },
                    finally = {
-#                     message("tryCatch database read finished")
+                     #                     message("tryCatch database read finished")
                      incProgress(1/length(inserted_date_seq))
                    }
                  )       # end of tryCatch
                }         # end of for loop
 
-  ) # End of withProgress
-return(data_selection_frame_append)
-}
+  )   # End of withProgress
+  return(data_selection_frame_append)
+}  # End of read_Remote()
 
 
 ##########
@@ -177,7 +162,7 @@ retrieve_Db <- reactive({
     print("retrieve_Db: retrieving")
     outSeq <- as.character(seq(as.Date(check_action$start_date) , as.Date(check_action$end_date), by = "day"))
 
-    remote_Connect()         # Connect to remote db
+    remote_Connect()         # CRetrieve records for dates
     data_selection_frame_append  <- read_Remote(outSeq)
     dbDisconnect(conR)
     print("Remote db disconnected")
@@ -193,7 +178,6 @@ retrieve_Db <- reactive({
 
 # Small return table for test purposes
 list_head_DB <- reactive({
-  # # # browser()
   small_out <- retrieve_Db()
   small_out$item_date_published <- as.character(small_out$item_date_published)
   return(head(small_out))
