@@ -3,6 +3,18 @@
 # Initialization of variables and initial empty dataframe
 library(tibble)
 rm(list = ls())
+
+print( "Global 0 - About to connect - Server/Remote 1")
+# Establish connection to Digital Ocean (remote) database
+print("Global 1 - Pre creation of conR")
+
+remoteuserpassword <- "m3t1sz"
+conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
+print("Connected remote 1")
+dbListTables(conR)
+
+
+
 global_start_date <- Sys.Date()
 global_end_date <- Sys.Date()
 first_pass = TRUE
@@ -27,3 +39,20 @@ data_selection_frame$item_date_published <- as.Date(data_selection_frame$item_da
 #                                loughran_frame_constraining = numeric(), loughran_frame_litigious = numeric(), loughran_frame_negative = numeric(),
 #                                loughran_frame_positive = numeric(), loughran_frame_uncertain = numeric(),
 #                                hash_value = character(), stringsAsFactors = FALSE)
+# Retrieve RSS feed static data
+dbQuery <- dbSendQuery(conR, "SELECT * FROM rssSources")
+rssSources <- dbFetch(dbQuery)
+print("RSS Feeds static data retrieved")
+rssSources.names <- unique(dplyr::select(rssSources,Feed))
+rssSources.names <- as_tibble(sort(rssSources.names[,1]))
+colnames(rssSources.names) <- "cname"
+rssSources.names$cname <- as_utf8_character(rssSources.names$cname)
+rss.SourceTypes <- unique(dplyr::select(rssSources,SourceType))
+rss.SourceTypes <- sort(rss.SourceTypes[,1])
+rss.Countries <- unique(dplyr::select(rssSources,Country))
+rss.Countries <- sort(rss.Countries[,1])
+rss.Regions <- unique(dplyr::select(rssSources,Region))
+rss.Regions <- sort(rss.Regions[,1])
+rss.Orientation <- unique(dplyr::select(rssSources,Orientation))
+rss.Orientation <- sort(rss.Orientation[,1])
+rss.Lookups <- unique(dplyr::select(rssSources,URL, Orientation))
