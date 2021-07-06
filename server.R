@@ -128,6 +128,221 @@ read_Remote <- function(inserted_date_seq){
   return(data_selection_frame_append)
 }  # End of read_Remote()
 
+###########
+#
+# Imported functions
+#
+#
+##########
+
+rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic){
+  print("server 2 - RSS select")
+  ifelse(is.null(Source), rssSelected <- rssSelected,
+         rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
+  ifelse(is.null(Orientation), rssSelected <- rssSelected,
+         rssSelected <- dplyr::filter(rssSelected, Orientation == orientation))
+  ifelse(is.null(SourceType), rssSelected <- rssSelected,
+         rssSelected <- dplyr::filter(rssSelected, SourceType == SourceType))
+  ifelse(is.null(Country), rssSelected <- rssSelected,
+         rssSelected <- dplyr::filter(rssSelected, Country  == country))
+  ifelse(is.null(Region), rssSelected <- rssSelected,
+         rssSelected <- dplyr::filter(rssSelected, Region == Region))
+  ifelse(is.null(Topic), rssSelected <- rssSelected,
+         rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
+  return(rssSelected)
+}
+
+######### Round all values in heterogenous data frame (homogeneous columns)
+
+round_df <- function(x, digits) {
+  # round all numeric variables
+  # x: data frame
+  # digits: number of digits to round
+  numeric_columns <- sapply(x, mode) == 'numeric'
+  x[numeric_columns] <-  round(x[numeric_columns], digits)
+}
+
+
+
+######### Compute
+cluster_comp <-function(query_in){
+  cluster_frame <- unique(query_in[,c('ext_name', 'orientation', 'country')])
+  cluster_agg <- aggregate(query_in[,c(7:23)], by = list(ext_name=query_in$ext_name), sum)
+  cluster_merge <- merge(cluster_agg, cluster_frame)
+  cluster_merge_x <- cluster_merge[,2:18]
+  cluster_clean <- cluster_merge_x[,apply(cluster_merge_x, 2, var, na.rm = TRUE) !=0]
+  model <- prcomp(cluster_clean)
+}
+
+#######
+
+# Compute time series data
+posneg <- function(SA_scores){
+  neg <- -sum(SA_scores[SA_scores <0])
+  pos <- sum(SA_scores[SA_scores>0 ])
+  both <- neg + pos
+  count <- length(SA_scores)
+  posneg <- -(neg-pos)/count
+}
+
+f.sumVals <- function(query_in) {
+  sumVals <- query_in %>%
+    group_by(item_date_published) %>%
+    dplyr::summarize(
+      syuzhet = sum(syuzhet_score),
+      afinn = sum(afinn_score),
+      bing = sum(bing_score),
+      nrc_anger = sum(nrc_score_anger),
+      nrc_anticipation = sum(nrc_score_anticipation),
+      nrc_disgust = sum(nrc_score_disgust),
+      nrc_fear = sum(nrc_score_fear),
+      nrc_joy = sum(nrc_score_joy),
+      nrc_positive =sum(nrc_score_positive),
+      nrc_negative = sum(nrc_score_negative),
+      nrc_sadness = sum(nrc_score_sadness),
+      nrc_surprise = sum(nrc_score_surprise),
+      nrc_trust = sum(nrc_score_trust),
+      loughran_constraining = sum(loughran_frame_constraining),
+      loughran_litigious = sum(loughran_frame_litigious),
+      loughran_negative = sum(loughran_frame_negative),
+      loughran_positive = sum(loughran_frame_positive),
+      loughran_uncertain = sum(loughran_frame_uncertain),
+      ensemble_posneg = sum(ensemble_posneg)
+    )
+
+  sumVals <- dplyr::filter(sumVals, item_date_published >= input$dateRange[1]) # Remove items before selection date
+  sumVals <-sumVals %>% gather('syuzhet', 'afinn', 'bing', 'nrc_anger', 'nrc_anticipation', 'nrc_disgust', 'nrc_fear', 'nrc_joy',
+                               'nrc_positive', 'nrc_negative', 'nrc_sadness', 'nrc_surprise', 'nrc_trust', 'loughran_constraining',
+                               'loughran_litigious', 'loughran_negative', 'loughran_positive', 'loughran_uncertain','ensemble_posneg', key = "factorName", value = 'factorValue')
+  sumVals$factorName <- as.factor(sumVals$factorName)
+  return(sumVals)
+}
+
+# Compute aggregated data for time period
+
+f.totVals <- function(query_in){
+  totVals <- query_in %>% gather(syuzhet_score, afinn_score, bing_score,
+                                 nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
+                                 nrc_score_joy, nrc_score_positive, nrc_score_negative,
+                                 nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
+                                 loughran_frame_constraining, loughran_frame_litigious,
+                                 loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
+                                 nrc_comp, loughran_comp, ensemble_posneg, key = "factorName", value = 'factorValue')
+
+  totVals$factorName <- as.factor(totVals$factorName)
+  totValsSums <- tapply(totVals$factorValue, totVals$factorName, FUN = sum, na.rm = TRUE)
+  totValsSums1 <- melt(totValsSums)
+
+  colnames(totValsSums1) <- c("Factor", "Value")
+
+  totValsSums1 <- rbind(totValsSums1,
+                        data.frame(Factor = "PosNeg", Value = 0),
+                        data.frame(Factor = "nrc", Value = 0),
+                        data.frame(Factor = "loughran", Value = 0))
+  totValsSumsGp <- c(1,1,1,2,
+                     2,2,1,1,
+                     2,3,3,3,
+                     3,3,3,1,
+                     1,3,3,3,
+                     1,0,0,0) # Allocates value to groups of factors for (eg) colour mapping
+
+  totValsSums1$group1 <- as.factor(totValsSumsGp)
+  totValsSums1[totValsSums1$loughran_frame_negative, 2] <-  99 #totValsSums1[totValsSums1$loughran_frame_negative, 2] * -1
+  totValsSums1
+}
+
+time_Series_graph <- function(sumVals, gtitle, line_col, point_col, point_fill){
+  p <- ggplot(sumVals,
+              aes(x = item_date_published, y = rollmean(factorValue, input$dateGrouping, na.pad = TRUE) )) +
+    geom_smooth(method = input$ismooth, fullrange = TRUE,se = input$iconfidence, level = input$iconfidenceLevel) +
+    xlab("Story date") + ylab("Factor score") +
+    theme(legend.position = c(0.1,0.95)) +
+    labs(colour = "Methods") +
+    theme(legend.title = element_text(size = 8),
+          axis.title.x = element_text(size = 8),
+          axis.title.y = element_text(size = 8),
+          plot.title = element_text(size = 8)
+    )
+  if(isTRUE(input$aColumn)){(p <- p + geom_col(position = "dodge"))}
+  if(isTRUE(input$aLine)){(p <- p + geom_line(colour = line_col))}
+  if(isTRUE(input$aPoint)){(p <- p + geom_point(size = 4, shape = 22, colour = point_col, fill = point_fill))}
+
+  return(ggplotly(p))
+}
+
+###### acf / pacf graphics: Source: https://rh8liuqy.github.io/ACF_PACF_by_ggplot2.html
+
+ggplot.corr <- function(data, lag.max = 24, ci = 0.95, large.sample.size = TRUE, horizontal = TRUE, title_line, ...) {
+
+  if(horizontal == TRUE) {numofrow <- 1} else {numofrow <- 2}
+
+  list.acf <- acf(data, lag.max = lag.max, type = "correlation", plot = FALSE)
+  N <- as.numeric(list.acf$n.used)
+  df1 <- data.frame(lag = list.acf$lag, acf = list.acf$acf)
+  df1$lag.acf <- dplyr::lag(df1$acf, default = 0)
+  df1$lag.acf[2] <- 0
+  df1$lag.acf.cumsum <- cumsum((df1$lag.acf)^2)
+  df1$acfstd <- sqrt(1/N * (1 + 2 * df1$lag.acf.cumsum))
+  df1$acfstd[1] <- 0
+  df1 <- select(df1, lag, acf, acfstd)
+
+  list.pacf <- acf(data, lag.max = lag.max, type = "partial", plot = FALSE)
+  df2 <- data.frame(lag = list.pacf$lag,pacf = list.pacf$acf)
+  df2$pacfstd <- sqrt(1/N)
+
+  if(large.sample.size == TRUE) {
+    plot.acf <- ggplot(data = df1, aes( x = lag, y = acf)) +
+      geom_area(aes(x = lag, y = qnorm((1+ci)/2)*acfstd), fill = "#B9CFE7") +
+      geom_area(aes(x = lag, y = -qnorm((1+ci)/2)*acfstd), fill = "#B9CFE7") +
+      geom_col(fill = "#4373B6", width = 0.7) +
+      scale_x_continuous(breaks = seq(0,max(df1$lag),6)) +
+      scale_y_continuous(name = element_blank(),
+                         limits = c(min(df1$acf,df2$pacf),1)) +
+      ggtitle("ACF ", title_line) +
+      theme_bw()
+
+    plot.pacf <- ggplot(data = df2, aes(x = lag, y = pacf)) +
+      geom_area(aes(x = lag, y = qnorm((1+ci)/2)*pacfstd), fill = "#B9CFE7") +
+      geom_area(aes(x = lag, y = -qnorm((1+ci)/2)*pacfstd), fill = "#B9CFE7") +
+      geom_col(fill = "#4373B6", width = 0.7) +
+      scale_x_continuous(breaks = seq(0,max(df2$lag, na.rm = TRUE),6)) +
+      scale_y_continuous(name = element_blank(),
+                         limits = c(min(df1$acf,df2$pacf),1)) +
+      ggtitle("PACF", title_line) +
+      theme_bw()
+  }
+  else {
+    plot.acf <- ggplot(data = df1, aes( x = lag, y = acf)) +
+      geom_col(fill = "#4373B6", width = 0.7) +
+      geom_hline(yintercept = qnorm((1+ci)/2)/sqrt(N),
+                 colour = "sandybrown",
+                 linetype = "dashed") +
+      geom_hline(yintercept = - qnorm((1+ci)/2)/sqrt(N),
+                 colour = "sandybrown",
+                 linetype = "dashed") +
+      scale_x_continuous(breaks = seq(0,max(df1$lag),6)) +
+      scale_y_continuous(name = element_blank(),
+                         limits = c(min(df1$acf,df2$pacf),1)) +
+      ggtitle("ACF", title_line) +
+      theme_bw()
+
+    plot.pacf <- ggplot(data = df2, aes(x = lag, y = pacf)) +
+      geom_col(fill = "#4373B6", width = 0.7) +
+      geom_hline(yintercept = qnorm((1+ci)/2)/sqrt(N),
+                 colour = "sandybrown",
+                 linetype = "dashed") +
+      geom_hline(yintercept = - qnorm((1+ci)/2)/sqrt(N),
+                 colour = "sandybrown",
+                 linetype = "dashed") +
+      scale_x_continuous(breaks = seq(0,max(df2$lag, na.rm = TRUE),6)) +
+      scale_y_continuous(name = element_blank(),
+                         limits = c(min(df1$acf,df2$pacf),1)) +
+      ggtitle("PACF", title_line) +
+      theme_bw()
+  }
+  cowplot::plot_grid(plot.acf, plot.pacf, nrow = numofrow)
+}
+
 
 ##########
 #

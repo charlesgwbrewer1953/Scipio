@@ -49,11 +49,7 @@ dashboardPage(
                                max = 90),
 
                   ############################
-                  numericInput(inputId = "dateGrouping",
-                               "Rolling average ",
-                               value = 5,
-                               min = 1,
-                               max = 90),
+
 
                   dropdown(
                     label = "Selection 1",
