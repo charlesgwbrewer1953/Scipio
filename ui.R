@@ -16,7 +16,6 @@ library(rlang)
 
 library(DBI)
 library(zoo)
-library(shinysky)
 library(reshape2)
 
 library(MASS)
@@ -170,9 +169,12 @@ dashboardPage(
               ), # End of sidebar
 
     dashboardBody(
+      tabItems(
+        tabItem(tabName = "comparison",
         fluidRow(tableOutput("dateSelection"),
       #           tableOutput("date_lookup"),
                  tableOutput("reduced_Table")
-                 )
+                 )) # End of tabItem()
+    ) #End of tabItems
     )
     ) # End of dashboardPage
