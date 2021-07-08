@@ -73,6 +73,8 @@ remote_Connect <- function(){
   #
   #Read remote database
   #
+  #Retrieves NEW data items as selected in current sidebar
+  # and returns global dataframe additional items as read_Remote()
   #
   ##########
 
@@ -344,6 +346,36 @@ ggplot.corr <- function(data, lag.max = 24, ci = 0.95, large.sample.size = TRUE,
 }
 
 
+### Select internal DB / dataframe items from global variable
+
+query_out_Date2 <- function(){
+  queryDate <- as.Date(input$dateRange[1])
+  print("server 4 - start of query_out_Date")
+  queryDate <- format(as.Date(queryDate), "%Y_%m_%d")
+  print(paste("queryDate (1) ", queryDate))
+
+  outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+  outSeq <- format(as.Date(outSeq, "%Y_%m_%d"))
+  query_out_frame <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
+                                country = character() , region = character(),
+                                syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
+                                nrc_score_anger = numeric(), nrc_score_anticipation = numeric(), nrc_score_disgust = numeric(), nrc_score_fear = numeric(),
+                                nrc_score_joy = numeric(), nrc_score_positive = numeric(), nrc_score_negative = numeric(),
+                                nrc_score_sadness = numeric(), nrc_score_surprise = numeric(), nrc_score_trust = numeric(),
+                                loughran_frame_constraining = numeric(), loughran_frame_litigious = numeric(), loughran_frame_negative = numeric(),
+                                loughran_frame_positive = numeric(), loughran_frame_uncertain = numeric(),
+                                hash_value = character())
+  error_date <- data.frame(fail_date = character())
+  ##############
+  #
+  #   Read database - default date if initial date unavailable
+  #
+  ##############
+  print("Date Internal dataframe read initiated")
+  #### Table dates
+  inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+}
+
 ##########
 #
 #Reactive functions
@@ -369,19 +401,17 @@ print("FILLER")
 })
 
 
-#
+# Retirns current date selection - input to secondary selection
 retrieve_Db <- reactive({
   print("retrieve_Db")
   check_action <- check_dates2(input$dateRange[1], input$dateRange[2]) # Removed while developing function
   if(check_action$Action == TRUE){
     print("retrieve_Db: retrieving")
     outSeq <- as.character(seq(as.Date(check_action$start_date) , as.Date(check_action$end_date), by = "day"))
-
-    remote_Connect()         # CRetrieve records for dates
+    conR <- remote_Connect()         # CRetrieve records for dates
     data_selection_frame_append  <- read_Remote(outSeq)
     dbDisconnect(conR)
     print("Remote db disconnected")
-
     data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
     global_start_date <<-input$dateRange[1]}else{
       print("No new db records required")
@@ -407,5 +437,12 @@ list_head_DB <- reactive({
 
 output$dateSelection <- renderTable(date_selection())
 output$reduced_Table <- renderTable(list_head_DB())
+output$Selections <- DT::renderDT({
+  print("server 4 - generate output")
+  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput )
+  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2 )
+  dataSelection <- rbind(v1, v2)
+  query_out_List
+})
 
 })
