@@ -33,7 +33,7 @@ dashboardPage(
     dashboardHeader(
         title = "Media Sentiment Analysis- ", titleWidth = 450
     ),   # End of dashboardHeader
-
+#####
               dashboardSidebar(
                   width = 275,
                   shinyDashboardThemes(theme = "purple_gradient"),
@@ -47,7 +47,7 @@ dashboardPage(
                                min = 1,
                                max = 90),
 
-                  ############################
+############################
 
 
                   dropdown(
@@ -82,8 +82,8 @@ dashboardPage(
                               value = " ")
 
                   ),
-
-
+ #Dropdown Selection 1
+#################
                   dropdown(
                     tooltip = TRUE,
                     label = "Selection 2",
@@ -115,8 +115,8 @@ dashboardPage(
                               "Text selection 2",
                               value = " ")
 
-                  ),
-
+                  ), #Íourccetype, Country, Region, Orientation, Sentiment factor, Text
+##############
                   dropdown(
                     tootip = TRUE,
                     label = "Smooth/Corr",
@@ -130,8 +130,8 @@ dashboardPage(
                     selectizeInput("icorrelate", label = "Method", c("pearson", "kendall", "spearman"), multiple = FALSE),
                     selectizeInput("icorr.alternate", label = "Alternative", c("two.sided", "greater", "less"), multiple = FALSE),
                     numericInput("iPCAcount", label = "PCA factors", value = 3, min = 1, max = 8)
-                  ),
-
+                  ), # Tooltip# Sommthinng
+###################
                   dropdown(
                     tooltip = TRUE,
                     label = "Normalize",
@@ -141,7 +141,7 @@ dashboardPage(
                       checkboxInput("iLRCNorm", "Orientation"),
                       checkboxInput("iCountryNorm", "Countries"))
                   ),
-
+################
                   dropdown(
                     tooltip = TRUE,
                     label = "Format",
@@ -164,7 +164,7 @@ dashboardPage(
                     menuItem("Cluster", tabName = "cluster", icon = icon("cogs")),
                     menuItem("Source", tabName = "source", icon = icon("dashboard"))
                   )
-                  ###########################3
+                  ###########################
 
               ), # End of sidebar
 
@@ -174,7 +174,53 @@ dashboardPage(
         fluidRow(tableOutput("dateSelection"),
       #           tableOutput("date_lookup"),
                  tableOutput("reduced_Table")
-                 )) # End of tabItem()
+                 )),
+      tabItem(tabName = "individual",
+
+              h4("Selection 1"),
+              fluidRow(
+                column(width = 6, plotlyOutput("SA_by_date_line")),
+
+                column(width = 6, plotlyOutput("SA_summary_by_period"))),
+              h4("Selection 2"),
+              fluidRow(
+                column(width = 6, plotlyOutput("SA_by_date_line2")),
+                column(width = 6, plotlyOutput("SA_summary_by_period2"))),
+              # End of tab 2
+      ),
+      tabItem(tabName = "correlation",
+              fluidRow(
+                h4("Statistics"),
+                column(width = 8, plotlyOutput("SA_correlation")),
+                column(width = 4, DT::dataTableOutput("corrStats"))),
+      ),
+
+      tabItem(tabName = "autocorr",
+              fluidRow(
+                h4("Autocorrelation"),
+                column(width = 12, plotOutput("ACF1_large"))
+              ),
+              fluidRow(
+                column(width = 12, plotOutput("ACF2_large"))
+              )
+      ),
+
+
+
+      tabItem(tabName = "cluster",
+              fluidRow(
+                h4("Principal Components"),
+
+                column(width = 6, plotOutput("PCA")),
+                column(width = 6, plotOutput("PCA_scree"))
+              ),
+              fluidRow(column(width = 12, DT::dataTableOutput("PCA_tab")))
+
+      ),
+      tabItem(tabName = "source",
+              h4("Source"),
+                DT::dataTableOutput("tbl")
+              )) # End of tabItem()# End of tabItem()
     ) #End of tabItems
-    )
+
     ) # End of dashboardPage
