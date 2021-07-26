@@ -165,9 +165,16 @@ dashboardPage(
                     menuItem("Source", tabName = "source", icon = icon("dashboard"))
                   )
                   ###########################
-
               ), # End of sidebar
 
+
+####################
+#
+#
+# Main body
+#
+#
+####################
     dashboardBody(
       tabItems(
         tabItem(tabName = "comparison",

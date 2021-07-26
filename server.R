@@ -404,7 +404,7 @@ print("FILLER")
 })
 
 
-# Retirns current date selection - input to secondary selection
+# Retrieves from remote database current date selection - input to secondary selection
 retrieve_Db <- reactive({
   print("retrieve_Db")
   check_action <- check_dates2(input$dateRange[1], input$dateRange[2]) # Removed while developing function
@@ -440,12 +440,14 @@ list_head_DB <- reactive({
 
 output$dateSelection <- renderTable(date_selection())
 output$reduced_Table <- renderTable(list_head_DB())
-output$Selections <- DT::renderDT({
-  print("server 4 - generate output")
-  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput, input$dateRange[1], input$dateRange[2] )
-  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2, input$dateRange[1], input$dateRange[2] )
-  dataSelection <- rbind(v1, v2)
-  query_out_List
-})
+# output$Selections <- DT::renderDT({
+#   print("server 4 - generate output")
+#   v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput, input$dateRange[1], input$dateRange[2] )
+#   v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2, input$dateRange[1], input$dateRange[2] )
+#   dataSelection <- rbind(v1, v2)
+#   print("Here!!!")
+#   query_out_List
+# }
+# )
 
 })
