@@ -60,7 +60,7 @@ shinyServer(function(input, output) {
     return(check_date_list2)
   }
 
-
+# connectes to remote database
 remote_Connect <- function(){
   print("remote_Connect")
   remoteuserpassword <- "m3t1sz"
@@ -137,8 +137,11 @@ read_Remote <- function(inserted_date_seq){
 #
 ##########
 
-rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic){
+# selects data for current
+rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic, start_date, end_date){
   print("server 2 - RSS select")
+  rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
+  rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
   ifelse(is.null(Orientation), rssSelected <- rssSelected,
@@ -439,8 +442,8 @@ output$dateSelection <- renderTable(date_selection())
 output$reduced_Table <- renderTable(list_head_DB())
 output$Selections <- DT::renderDT({
   print("server 4 - generate output")
-  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput )
-  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2 )
+  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput, input$dateRange[1], input$dateRange[2] )
+  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2, input$dateRange[1], input$dateRange[2] )
   dataSelection <- rbind(v1, v2)
   query_out_List
 })

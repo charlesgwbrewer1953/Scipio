@@ -2,6 +2,7 @@
 
 # Initialization of variables and initial empty dataframe
 library(tibble)
+library(rlang)
 rm(list = ls())
 
 print( "Global 0 - About to connect - Server/Remote 1")
