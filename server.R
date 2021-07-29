@@ -424,6 +424,97 @@ retrieve_Db <- reactive({
   return(data_selection_frame)
 })
 
+##############
+#
+#   Build full dataframe for dates
+#
+##############
+query_out_Date <- reactive({
+  # queryDate <- as.Date(input$dateRange[1])
+  # print("server 4 - start of query_out_Date")
+  # queryDate <- format(as.Date(queryDate), "%Y_%m_%d")
+  # print(paste("queryDate (1) ", queryDate))
+
+  outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+  outSeq <- format(as.Date(outSeq, "%Y_%m_%d"))
+  query_out_frame <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
+                                country = character() , region = character(),
+                                syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
+                                nrc_score_anger = numeric(), nrc_score_anticipation = numeric(), nrc_score_disgust = numeric(), nrc_score_fear = numeric(),
+                                nrc_score_joy = numeric(), nrc_score_positive = numeric(), nrc_score_negative = numeric(),
+                                nrc_score_sadness = numeric(), nrc_score_surprise = numeric(), nrc_score_trust = numeric(),
+                                loughran_frame_constraining = numeric(), loughran_frame_litigious = numeric(), loughran_frame_negative = numeric(),
+                                loughran_frame_positive = numeric(), loughran_frame_uncertain = numeric(),
+                                hash_value = character())
+  error_date <- data.frame(fail_date = character())
+  ##############
+  #
+  #   Read database - default date if initial date unavailable
+  #
+  ##############
+  print("Date DB read initiated")
+  #### Table dates
+  inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+
+  for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
+    inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
+
+
+    queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
+            syuzhet_score, afinn_score, bing_score,
+            nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
+            nrc_score_joy, nrc_score_positive, nrc_score_negative,
+            nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
+            loughran_frame_constraining, loughran_frame_litigious,
+            loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
+            md5(concat(item_title, item_date_published)) AS hash_value
+                             FROM sa_RSS_library", inserted_date, "
+                            ;" )
+    tryCatch(
+      expr = {
+        try_date <- paste0("sa_RSS_library", inserted_date)
+        query1  <- dbGetQuery(conR, queryScript)
+        query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
+        query_out_frame <- rbind(query_out_frame, query1)
+      },
+      error = function(e){
+        message(paste0("Error message on date: ", inserted_date, " "))
+        message(queryScript)
+        error_date <- rbind(error_date, inserted_date)
+      },
+      finally = {
+        message("tryCatch database read finished")
+      }
+    )  # end of tryCatch
+  }
+
+  error_date # LIst dates with missing tables
+  query_out_frame <- query_out_frame[!duplicated(query_out_frame$hash_value),]   # Query response with no duplicates
+  #query_out_full <- query_out_frame # Contains all values (country / orientation )
+  #       query_out <- rssSelection(query_out, Source = input$isource, Orientation = input$iorientation,Country = input$icountry, Topic = input$iTextinput)
+  print("SERVER - query_out_Date")
+
+  # Normalize values for ensemble positive / negative
+
+  query_out_frame$nrc_comp <- query_out_frame$nrc_score_positive - query_out_frame$nrc_score_negative
+  query_out_frame$loughran_comp <- query_out_frame$loughran_frame_positive - query_out_frame$loughran_frame_negative
+  afinn.norm <- max(abs(query_out_frame$afinn_score))
+  syuzhet.norm <- max(abs(query_out_frame$syuzhet_score))
+  bing.norm <- max(abs(query_out_frame$bing_score))
+  nrc.norm <- max(abs(query_out_frame$nrc_comp))
+  loughran.norm <- max(abs(query_out_frame$loughran_comp))
+  query_out_frame$ensemble_posneg <- query_out_frame$afinn_score/afinn.norm + query_out_frame$bing_score/bing.norm + query_out_frame$syuzhet_score/syuzhet.norm +
+    query_out_frame$nrc_comp/nrc.norm + query_out_frame$loughran_comp/loughran.norm
+
+  query_out_frame <- cbind(query_out_frame, rssSources[match(query_out_frame$ext_name, rssSources$Feed), c(6,7)]) # Add region and source type
+  print("End of query_out_Date")
+  query_out_frame # returned
+
+  # end of read DB loop
+})
+
+############################ DEVELOPMENT ONLY BELOW
+
 # Small return table for test purposes
 list_head_DB <- reactive({
   small_out <- retrieve_Db()
@@ -439,15 +530,15 @@ list_head_DB <- reactive({
 ##########
 
 output$dateSelection <- renderTable(date_selection())
-output$reduced_Table <- renderTable(list_head_DB())
-# output$Selections <- DT::renderDT({
-#   print("server 4 - generate output")
-#   v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput, input$dateRange[1], input$dateRange[2] )
-#   v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2, input$dateRange[1], input$dateRange[2] )
-#   dataSelection <- rbind(v1, v2)
-#   print("Here!!!")
-#   query_out_List
-# }
-# )
+output$reduced_Table <- renderTable(list_head_DB()) # This is being printed
+output$Selections <- DT::renderDT({
+  print("server 4 - generate output")
+  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput, input$dateRange[1], input$dateRange[2] )
+  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2, input$dateRange[1], input$dateRange[2] )
+  dataSelection <- rbind(v1, v2)
+  print("Here!!!")
+  query_out_List
+}
+)
 
 })
