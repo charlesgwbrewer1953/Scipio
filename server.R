@@ -41,19 +41,19 @@ shinyServer(function(input, output) {
 # If input$date1 not < than previus earliest data returns FALSE indicating no read required
 
   check_dates2 <- function(date1, date2){
-    print("check_dates2()")
+    print("check_dates2() 43")
     if(first_pass == TRUE){
-      print("OPTION 1 - first pass")
+      print("OPTION 1 - first pass -[check_dates2()]")
       global_start_date <<- date1
       first_pass <<- FALSE
       check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = date2)
     }else{
       if(date1 < global_start_date){
-        "OPTION 2 - Read more records"
+        "OPTION 2 - Read more records - [check_dates2()]"
         check_date_list2 <- list(Action = TRUE, start_date = date1, end_date = global_start_date - 1)
         global_start_date <<- date1 # date 1 becomes the new lowest date read
       }else{
-        print("OPTION 3 - no more records")
+        print("OPTION 3 - no more records - [check_dates2()]")
         check_date_list2 <- list(Action = FALSE)
       }
     }
@@ -62,7 +62,7 @@ shinyServer(function(input, output) {
 
 # connectes to remote database
 remote_Connect <- function(){
-  print("remote_Connect")
+  print("remote_Connect 65")
   remoteuserpassword <- "m3t1sz"
   conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
   return(conR)
@@ -79,7 +79,7 @@ remote_Connect <- function(){
   ##########
 
 read_Remote <- function(inserted_date_seq){
-  print("read_RemoteDb")
+  print("read_RemoteDb 81")
   data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
                                             country = character() , region = character(),
                                             syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
@@ -95,7 +95,7 @@ read_Remote <- function(inserted_date_seq){
                  inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
                  #                 print(paste("Loop", i, "Inserted date", inserted_date))
 
-                 print(paste("Date under retrieval:", inserted_date))
+#                 print(paste("Date under retrieval:", inserted_date))
                  queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
                                       syuzhet_score, afinn_score, bing_score,
                                       nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
@@ -139,7 +139,7 @@ read_Remote <- function(inserted_date_seq){
 
 # selects data for current
 rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic, start_date, end_date){
-  print("server 2 - RSS select")
+  print("rssSelection() 141")
   rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
   rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
   ifelse(is.null(Source), rssSelected <- rssSelected,
@@ -154,12 +154,15 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
          rssSelected <- dplyr::filter(rssSelected, Region == Region))
   ifelse(is.null(Topic), rssSelected <- rssSelected,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
-  return(rssSelected)
+ print("rssSelected")
+ print(rssSelected)
+   return(rssSelected)
 }
 
 ######### Round all values in heterogenous data frame (homogeneous columns)
 
 round_df <- function(x, digits) {
+  print("round_df 164")
   # round all numeric variables
   # x: data frame
   # digits: number of digits to round
@@ -171,6 +174,7 @@ round_df <- function(x, digits) {
 
 ######### Compute
 cluster_comp <-function(query_in){
+  print("query_in() 177")
   cluster_frame <- unique(query_in[,c('ext_name', 'orientation', 'country')])
   cluster_agg <- aggregate(query_in[,c(7:23)], by = list(ext_name=query_in$ext_name), sum)
   cluster_merge <- merge(cluster_agg, cluster_frame)
@@ -183,6 +187,7 @@ cluster_comp <-function(query_in){
 
 # Compute time series data
 posneg <- function(SA_scores){
+  print("SA_scores() 190")
   neg <- -sum(SA_scores[SA_scores <0])
   pos <- sum(SA_scores[SA_scores>0 ])
   both <- neg + pos
@@ -191,6 +196,7 @@ posneg <- function(SA_scores){
 }
 
 f.sumVals <- function(query_in) {
+  print("f.sumVals() 198")
   sumVals <- query_in %>%
     group_by(item_date_published) %>%
     dplyr::summarize(
@@ -226,6 +232,7 @@ f.sumVals <- function(query_in) {
 # Compute aggregated data for time period
 
 f.totVals <- function(query_in){
+  print("query_in 234")
   totVals <- query_in %>% gather(syuzhet_score, afinn_score, bing_score,
                                  nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
                                  nrc_score_joy, nrc_score_positive, nrc_score_negative,
@@ -352,6 +359,7 @@ ggplot.corr <- function(data, lag.max = 24, ci = 0.95, large.sample.size = TRUE,
 ### Select internal DB / dataframe items from global variable
 
 query_out_Date2 <- function(){
+  print("query_out_Date2 361")
   queryDate <- as.Date(input$dateRange[1])
   print("server 4 - start of query_out_Date")
   queryDate <- format(as.Date(queryDate), "%Y_%m_%d")
@@ -397,7 +405,7 @@ query_out_Date2 <- function(){
 # 1 Get start and end dates
 
 date_selection <- reactive({
-  print("date_selection()")
+  print("date_selection() 407")
   outSeq <- as.character(seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")) # as.character fixes bug
 print("FILLER")
   return(outSeq)
@@ -406,7 +414,7 @@ print("FILLER")
 
 # Retrieves from remote database current date selection - input to secondary selection
 retrieve_Db <- reactive({
-  print("retrieve_Db")
+  print("retrieve_Db() 416")
   check_action <- check_dates2(input$dateRange[1], input$dateRange[2]) # Removed while developing function
   if(check_action$Action == TRUE){
     print("retrieve_Db: retrieving")
@@ -430,11 +438,7 @@ retrieve_Db <- reactive({
 #
 ##############
 query_out_Date <- reactive({
-  # queryDate <- as.Date(input$dateRange[1])
-  # print("server 4 - start of query_out_Date")
-  # queryDate <- format(as.Date(queryDate), "%Y_%m_%d")
-  # print(paste("queryDate (1) ", queryDate))
-
+  print("query_out_Date 440")
   outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
   outSeq <- format(as.Date(outSeq, "%Y_%m_%d"))
   query_out_frame <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
@@ -451,49 +455,54 @@ query_out_Date <- reactive({
   #
   #   Read database - default date if initial date unavailable
   #
-  ##############
-  print("Date DB read initiated")
-  #### Table dates
-  inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
-
-  for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
-    inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
-
-
-    queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
-            syuzhet_score, afinn_score, bing_score,
-            nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
-            nrc_score_joy, nrc_score_positive, nrc_score_negative,
-            nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
-            loughran_frame_constraining, loughran_frame_litigious,
-            loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
-            md5(concat(item_title, item_date_published)) AS hash_value
-                             FROM sa_RSS_library", inserted_date, "
-                            ;" )
-    tryCatch(
-      expr = {
-        try_date <- paste0("sa_RSS_library", inserted_date)
-        query1  <- dbGetQuery(conR, queryScript)
-        query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
-        query_out_frame <- rbind(query_out_frame, query1)
-      },
-      error = function(e){
-        message(paste0("Error message on date: ", inserted_date, " "))
-        message(queryScript)
-        error_date <- rbind(error_date, inserted_date)
-      },
-      finally = {
-        message("tryCatch database read finished")
-      }
-    )  # end of tryCatch
-  }
-
-  error_date # LIst dates with missing tables
-  query_out_frame <- query_out_frame[!duplicated(query_out_frame$hash_value),]   # Query response with no duplicates
-  #query_out_full <- query_out_frame # Contains all values (country / orientation )
-  #       query_out <- rssSelection(query_out, Source = input$isource, Orientation = input$iorientation,Country = input$icountry, Topic = input$iTextinput)
+  # ##############
+  # print("Date DB read initiated")
+  # #### Table dates
+  # inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+  #
+  # for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
+  #   inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
+  #
+  #
+  #   queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
+  #           syuzhet_score, afinn_score, bing_score,
+  #           nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
+  #           nrc_score_joy, nrc_score_positive, nrc_score_negative,
+  #           nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
+  #           loughran_frame_constraining, loughran_frame_litigious,
+  #           loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
+  #           md5(concat(item_title, item_date_published)) AS hash_value
+  #                            FROM sa_RSS_library", inserted_date, "
+  #                           ;" )
+  #   tryCatch(
+  #     expr = {
+  #       try_date <- paste0("sa_RSS_library", inserted_date)
+  #       query1  <- dbGetQuery(conR, queryScript)
+  #       query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
+  #       query_out_frame <- rbind(query_out_frame, query1)
+  #     },
+  #     error = function(e){
+  #       message(paste0("Error message on date: ", inserted_date, " "))
+  #       message(queryScript)
+  #       error_date <- rbind(error_date, inserted_date)
+  #     },
+  #     finally = {
+  #       message("tryCatch database read finished")
+  #     }
+  #   )  # end of tryCatch
+  # }
+  #
+  # error_date # LIst dates with missing tables
+  # query_out_frame <- query_out_frame[!duplicated(query_out_frame$hash_value),]   # Query response with no duplicates
+  # #query_out_full <- query_out_frame # Contains all values (country / orientation )
+  # #       query_out <- rssSelection(query_out, Source = input$isource, Orientation = input$iorientation,Country = input$icountry, Topic = input$iTextinput)
   print("SERVER - query_out_Date")
 
+  ### Insert new section here
+  query_out_frame <- filter(data_selection_frame, item_date_published >= input$dateRange[1])
+  query_out_frame <- filter(query_out_frame, item_date_published <= input$dateRange[2])
+
+  ### End of new section
   # Normalize values for ensemble positive / negative
 
   query_out_frame$nrc_comp <- query_out_frame$nrc_score_positive - query_out_frame$nrc_score_negative
@@ -505,7 +514,7 @@ query_out_Date <- reactive({
   loughran.norm <- max(abs(query_out_frame$loughran_comp))
   query_out_frame$ensemble_posneg <- query_out_frame$afinn_score/afinn.norm + query_out_frame$bing_score/bing.norm + query_out_frame$syuzhet_score/syuzhet.norm +
     query_out_frame$nrc_comp/nrc.norm + query_out_frame$loughran_comp/loughran.norm
-
+browser()
   query_out_frame <- cbind(query_out_frame, rssSources[match(query_out_frame$ext_name, rssSources$Feed), c(6,7)]) # Add region and source type
   print("End of query_out_Date")
   query_out_frame # returned
@@ -529,7 +538,14 @@ list_head_DB <- reactive({
 #
 ##########
 
-output$dateSelection <- renderTable(date_selection())
+output$dataSelection <- renderTable(date_selection())
+output$tbl <- DT::renderDT({
+  print("Final table")
+  stories1 <- rssSelection(query_out_Date(), input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput, input$dateRange[1], input$dateRange[2])
+  stories2 <- rssSelection(query_out_Date(), input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itext, input2input$dateRange[1], input$dateRange[2])
+  stories <- rbind(stories1, stories2)
+  stories
+})
 output$reduced_Table <- renderTable(list_head_DB()) # This is being printed
 output$Selections <- DT::renderDT({
   print("server 4 - generate output")
@@ -538,7 +554,7 @@ output$Selections <- DT::renderDT({
   dataSelection <- rbind(v1, v2)
   print("Here!!!")
   query_out_List
-}
-)
+})
+
 
 })

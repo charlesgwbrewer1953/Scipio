@@ -178,7 +178,7 @@ dashboardPage(
     dashboardBody(
       tabItems(
         tabItem(tabName = "comparison",
-        fluidRow(tableOutput("dateSelection"),
+        fluidRow(tableOutput("tbl"),
       #           tableOutput("date_lookup"),
                  tableOutput("reduced_Table")
                  )),
