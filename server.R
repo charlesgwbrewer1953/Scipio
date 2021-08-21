@@ -514,7 +514,7 @@ query_out_Date <- reactive({
   loughran.norm <- max(abs(query_out_frame$loughran_comp))
   query_out_frame$ensemble_posneg <- query_out_frame$afinn_score/afinn.norm + query_out_frame$bing_score/bing.norm + query_out_frame$syuzhet_score/syuzhet.norm +
     query_out_frame$nrc_comp/nrc.norm + query_out_frame$loughran_comp/loughran.norm
-browser()
+
   query_out_frame <- cbind(query_out_frame, rssSources[match(query_out_frame$ext_name, rssSources$Feed), c(6,7)]) # Add region and source type
   print("End of query_out_Date")
   query_out_frame # returned
@@ -528,7 +528,10 @@ browser()
 list_head_DB <- reactive({
   small_out <- retrieve_Db()
   small_out$item_date_published <- as.character(small_out$item_date_published)
-  return(head(small_out))
+  small_out <- filter(small_out, item_date_published >= input$dateRange[1])
+  small_out <- filter(small_out, item_date_published <= input$dateRange[2])
+  small_out <- dplyr::select(small_out, ext_name, item_date_published)
+  return((small_out))
 })
 
 ##########
@@ -538,23 +541,34 @@ list_head_DB <- reactive({
 #
 ##########
 
-output$dataSelection <- renderTable(date_selection())
+output$dataSelection <- renderTable(date_selection()) # Does nothing
 output$tbl <- DT::renderDT({
   print("Final table")
-  stories1 <- rssSelection(query_out_Date(), input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput, input$dateRange[1], input$dateRange[2])
-  stories2 <- rssSelection(query_out_Date(), input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itext, input2input$dateRange[1], input$dateRange[2])
-  stories <- rbind(stories1, stories2)
-  stories
-})
-output$reduced_Table <- renderTable(list_head_DB()) # This is being printed
+#  stories1 <- rssSelection(query_out_Date(), input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput, input$dateRange[1], input$dateRange[2])
+#  stories2 <- rssSelection(query_out_Date(), input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itext, input2input$dateRange[1], input$dateRange[2])
+#  stories <- rbind(stories1, stories2)
+# stories
+},
+caption = "Standard Statistics",
+options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = TRUE))
+
+
+output$reduced_Table <- renderPlotly({
+  print("reduced_Table Server 550")
+  list_head_DB()
+  },
+  caption = "Correlation2 Statistics",
+  options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = TRUE)
+  ) # This is being printed
+
+
 output$Selections <- DT::renderDT({
   print("server 4 - generate output")
   v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput, input$dateRange[1], input$dateRange[2] )
   v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2, input$dateRange[1], input$dateRange[2] )
   dataSelection <- rbind(v1, v2)
-  print("Here!!!")
   query_out_List
-})
-
-
+},
+caption = "Correlation Statistics",
+options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = TRUE))
 })

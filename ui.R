@@ -167,7 +167,6 @@ dashboardPage(
                   ###########################
               ), # End of sidebar
 
-
 ####################
 #
 #
@@ -178,11 +177,13 @@ dashboardPage(
     dashboardBody(
       tabItems(
         tabItem(tabName = "comparison",
-        fluidRow(#
-                 tableOutput("date_lookup"),
-                 tableOutput("reduced_Table"),
-                 #tableOutput("tbl")
-                 )),
+        fluidRow(
+          h4("Comparison chart"),
+              #  tableOutput("date_lookup"),
+                plotlyOutput("reduced_Table")
+                 )
+  #      fluidRow(tableOutput("tbl"))
+        ),
       tabItem(tabName = "individual",
 
               h4("Selection 1"),
