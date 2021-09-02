@@ -54,9 +54,11 @@ shinyServer(function(input, output) {
         global_start_date <<- date1 # date 1 becomes the new lowest date read
       }else{
         print("OPTION 3 - no more records - [check_dates2()]")
-        check_date_list2 <- list(Action = FALSE)
+        check_date_list2 <- list(Action = FALSE, , start_date = date1, end_date = date2)
       }
     }
+    print(check_date_list2)
+#    print(paste("Action List: Action = ", check_date_list2$Action, "date 1", check_date_list2$start_date, , "date 1", check_date_list2$end_date))
     return(check_date_list2)
   }
 
@@ -456,46 +458,7 @@ query_out_Date <- reactive({
   #   Read database - default date if initial date unavailable
   #
   # ##############
-  # print("Date DB read initiated")
-  # #### Table dates
-  # inserted_date_seq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
-  #
-  # for(i in seq_along(inserted_date_seq)){         # Start of read DB loop
-  #   inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
-  #
-  #
-  #   queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
-  #           syuzhet_score, afinn_score, bing_score,
-  #           nrc_score_anger, nrc_score_anticipation, nrc_score_disgust, nrc_score_fear,
-  #           nrc_score_joy, nrc_score_positive, nrc_score_negative,
-  #           nrc_score_sadness, nrc_score_surprise, nrc_score_trust,
-  #           loughran_frame_constraining, loughran_frame_litigious,
-  #           loughran_frame_negative, loughran_frame_positive, loughran_frame_uncertain,
-  #           md5(concat(item_title, item_date_published)) AS hash_value
-  #                            FROM sa_RSS_library", inserted_date, "
-  #                           ;" )
-  #   tryCatch(
-  #     expr = {
-  #       try_date <- paste0("sa_RSS_library", inserted_date)
-  #       query1  <- dbGetQuery(conR, queryScript)
-  #       query1$item_date_published <- as.Date(query1$item_date_published, format = "%Y-%m-%d")
-  #       query_out_frame <- rbind(query_out_frame, query1)
-  #     },
-  #     error = function(e){
-  #       message(paste0("Error message on date: ", inserted_date, " "))
-  #       message(queryScript)
-  #       error_date <- rbind(error_date, inserted_date)
-  #     },
-  #     finally = {
-  #       message("tryCatch database read finished")
-  #     }
-  #   )  # end of tryCatch
-  # }
-  #
-  # error_date # LIst dates with missing tables
-  # query_out_frame <- query_out_frame[!duplicated(query_out_frame$hash_value),]   # Query response with no duplicates
-  # #query_out_full <- query_out_frame # Contains all values (country / orientation )
-  # #       query_out <- rssSelection(query_out, Source = input$isource, Orientation = input$iorientation,Country = input$icountry, Topic = input$iTextinput)
+
   print("SERVER - query_out_Date")
 
   ### Insert new section here
@@ -522,15 +485,45 @@ query_out_Date <- reactive({
   # end of read DB loop
 })
 
+############################
+
+##############
+#
+#   Get data for all graphics
+#
+# ##############
+
+data_for_graphs <- function(date1, date2){
+  action_list <- check_dates2(date1, date2)
+    if(action_list$Action == TRUE){
+      print("retrieve_Db: retrieving")
+      outSeq <- as.character(seq(as.Date(date1) , as.Date(date2), by = "day"))
+      conR <- remote_Connect()         # CRetrieve records for dates
+      data_selection_frame_append  <- read_Remote(outSeq)
+      dbDisconnect(conR)
+      print("Remote db disconnected")
+      data_selection_frame <<- rbind(data_selection_frame, data_selection_frame_append)
+      data_selection_frame <<- unique(data_selection_frame )
+      global_start_date <<-input$dateRange[1]}else{
+        print("No new db records required")
+      }
+    return(data_selection_frame <<- unique(data_selection_frame ))
+  }
+
+
+
+
+
 ############################ DEVELOPMENT ONLY BELOW
 
 # Small return table for test purposes
 list_head_DB <- reactive({
-  small_out <- retrieve_Db()
+  small_out <- data_for_graphs(input$dateRange[1], input$dateRange[2])
+
   small_out$item_date_published <- as.character(small_out$item_date_published)
   small_out <- filter(small_out, item_date_published >= input$dateRange[1])
   small_out <- filter(small_out, item_date_published <= input$dateRange[2])
-  small_out <- dplyr::select(small_out, ext_name, item_date_published)
+#  small_out <- dplyr::select(small_out, ext_name, item_date_published)
   return((small_out))
 })
 
@@ -542,24 +535,35 @@ list_head_DB <- reactive({
 ##########
 
 output$dataSelection <- renderTable(date_selection()) # Does nothing
+
+
 output$tbl <- DT::renderDT({
   print("Final table")
-#  stories1 <- rssSelection(query_out_Date(), input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput, input$dateRange[1], input$dateRange[2])
-#  stories2 <- rssSelection(query_out_Date(), input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itext, input2input$dateRange[1], input$dateRange[2])
-#  stories <- rbind(stories1, stories2)
-# stories
 },
 caption = "Standard Statistics",
 options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = TRUE))
 
+#############
+output$reduced_Table <- DT::renderDT({
 
-output$reduced_Table <- renderPlotly({
   print("reduced_Table Server 550")
-  list_head_DB()
-  },
-  caption = "Correlation2 Statistics",
-  options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = TRUE)
+#  browser()
+  action_list_read <- check_dates2(input$dateRange[1], input$dateRange[2])
+  # Retrieve records for analysis
+  browser()
+  if(action_list_read$Action == TRUE){
+    outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+    data_selection_frame <<- rbind(data_selection_frame, read_Remote(outSeq))
+  }
+  red_Tab <- dplyr::filter(data_selection_frame, item_date_published >= input$dateRange[1])
+  red_Tab <- dplyr::filter(data_selection_frame, item_date_published <= input$dateRange[2])
+  head(red_Tab)
+  # p <- list_head_DB()
+  # p
+  }#,
+
   ) # This is being printed
+
 
 
 output$Selections <- DT::renderDT({
