@@ -180,7 +180,7 @@ dashboardPage(
         fluidRow(
           h4("Comparison chart"),
               #  tableOutput("date_lookup"),
-                DT::DTOutput("reduced_Table")
+                DT::dataTableOutput("reduced_Table")
                  )
   #      fluidRow(tableOutput("tbl"))
         ),

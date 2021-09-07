@@ -54,7 +54,7 @@ shinyServer(function(input, output) {
         global_start_date <<- date1 # date 1 becomes the new lowest date read
       }else{
         print("OPTION 3 - no more records - [check_dates2()]")
-        check_date_list2 <- list(Action = FALSE, , start_date = date1, end_date = date2)
+        check_date_list2 <- list(Action = FALSE, start_date = date1, end_date = date2)
       }
     }
     print(check_date_list2)
@@ -547,13 +547,14 @@ options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = TRUE)
 output$reduced_Table <- DT::renderDT({
 
   print("reduced_Table Server 550")
-#  browser()
+
   action_list_read <- check_dates2(input$dateRange[1], input$dateRange[2])
   # Retrieve records for analysis
-  browser()
+
   if(action_list_read$Action == TRUE){
     outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
     data_selection_frame <<- rbind(data_selection_frame, read_Remote(outSeq))
+    data_selection_frame <<- unique(data_selection_frame)
   }
   red_Tab <- dplyr::filter(data_selection_frame, item_date_published >= input$dateRange[1])
   red_Tab <- dplyr::filter(data_selection_frame, item_date_published <= input$dateRange[2])
