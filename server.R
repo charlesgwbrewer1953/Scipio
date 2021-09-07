@@ -157,7 +157,7 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
   ifelse(is.null(Topic), rssSelected <- rssSelected,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
  print("rssSelected")
- print(rssSelected)
+
    return(rssSelected)
 }
 
