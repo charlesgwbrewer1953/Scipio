@@ -184,7 +184,7 @@ dashboardPage(
                  ),
         fluidRow(
           h4("Comparative content"),
-          column(width = 12, plotlyOutput("SA_by_date_line_comp"))
+            plotlyOutput("SA_by_date_line_comp"))
 
         )
   #      fluidRow(tableOutput("tbl"))
@@ -199,14 +199,14 @@ dashboardPage(
               h4("Selection 2"),
               fluidRow(
                 column(width = 6, plotlyOutput("SA_by_date_line2")),
-                column(width = 6, plotlyOutput("SA_summary_by_period2"))),
+                column(width = 6, plotlyOutput("SA_summary_by_period2")))
               # End of tab 2
       ),
       tabItem(tabName = "correlation",
               fluidRow(
                 h4("Statistics"),
                 column(width = 8, plotlyOutput("SA_correlation")),
-                column(width = 4, DT::dataTableOutput("corrStats"))),
+                column(width = 4, DT::dataTableOutput("corrStats")))
       ),
 
       tabItem(tabName = "autocorr",
@@ -234,7 +234,8 @@ dashboardPage(
       tabItem(tabName = "source",
               h4("Source"),
                 DT::dataTableOutput("tbl")
+      )
               )) # End of tabItem()# End of tabItem()
-    ) #End of tabItems
-
-    ) # End of dashboardPage
+    # ) #End of tabItems
+    #
+    # ) # End of dashboardPage

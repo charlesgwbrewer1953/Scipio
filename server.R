@@ -140,10 +140,10 @@ read_Remote <- function(inserted_date_seq){
 ##########
 
 # selects data for current
-rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic, start_date, end_date){
+rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic){
   print("rssSelection() 141")
-  rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
-  rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
+  # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
+  # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
   ifelse(is.null(Orientation), rssSelected <- rssSelected,
@@ -395,6 +395,38 @@ query_out_Date2 <- function(){
 #
 #
 ##########
+
+# sumvals - sums values by selected
+
+sumVals <-  reactive({
+  print("server 3 - start of reactive functions")
+  query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
+  sumVals_rtn <- f.sumVals(query_in)
+  sumVals_rtn
+
+})
+
+sumVals2 <-  reactive({
+  query_in <- rssSelection(query_out_Date(), input$isource2, input$iorientation2,input$isourcetype2, input$icountry2, input$iregion2, input$itextinput2)
+  sumVals_rtn <- f.sumVals(query_in)
+  sumVals_rtn
+})
+
+
+#totVals - sums values for total period for each SA factor
+totVals <- reactive({
+  query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry, input$iregion, input$itextinput)
+  totVals_rtn <- f.totVals(query_in)
+  totVals_rtn
+
+})
+
+totVals2 <- reactive({
+  query_in <- rssSelection(query_out_Date(), input$isource2, input$iorientation2,input$isourcetype2, input$icountry2,input$iregion2, input$itextinput2)
+  totVals_rtn <- f.totVals(query_in)
+  totVals_rtn
+})
+
 
 
 ##########
