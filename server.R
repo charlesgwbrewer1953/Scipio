@@ -565,6 +565,43 @@ output$reduced_Table <- DT::renderDT({
 
   ) # This is being printed
 
+#####################ADDED
+output$SA_by_date_line_comp <- renderPlotly({
+  sumValsA <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
+  sumValsA <-mutate(sumValsA, Selection = "1")
+  sumValsB <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
+  sumValsB <-mutate(sumValsB, Selection = "2")
+  sumVals <- rbind(sumValsA, sumValsB)
+  if(isTRUE(input$iPosNegNorm)){
+    sumVals$factorValue <- sumVals$factorValue * posneg(sumVals$factorValue)
+  }
+
+  p <- sumVals %>%
+    mutate(mov_avg = rollmean(factorValue, input$dateGrouping, fill = 0)) %>%
+    ggplot(aes(x = item_date_published, y = factorValue, group = Selection, fill = Selection, colour = Selection)) +
+    xlab("Story date") + ylab("Factor score") +
+    theme(legend.position = c(0,0)) +
+    geom_smooth(method = input$ismooth, fullrange = TRUE,  show.legend = TRUE,se = input$iconfidence,
+                level = input$iconfidenceLevel, aes(colour = Selection)) +
+    ggtitle(paste("Time series analysis", "No R/A")) +
+    theme(legend.title = element_text(size = 8),
+          legend.position = c(0,0),
+          axis.title.x = element_text(size = 8),
+          axis.title.y = element_text(size = 8),
+          plot.title = element_text(size = 12)
+    )
+
+  if(isTRUE(input$aColumn)){(p <- p + geom_col(position = "dodge"))}
+  if(isTRUE(input$aLine)){(p <- p + geom_line())}
+  #        if(isTRUE(input$aDensity)){(p <- p + geom_density(aes(y = factorValue)))}
+  if(isTRUE(input$aPoint)){(p <- p + geom_point(size = 4, shape = 22, colour = "darkblue", fill = "azure"))}
+  p + theme(legend.position = c(0.1, 0.1))
+  p
+})
+
+
+#####################
+
 
 
 output$Selections <- DT::renderDT({

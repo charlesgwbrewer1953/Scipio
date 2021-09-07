@@ -181,7 +181,12 @@ dashboardPage(
           h4("Comparison chart"),
               #  tableOutput("date_lookup"),
                 DT::dataTableOutput("reduced_Table")
-                 )
+                 ),
+        fluidRow(
+          h4("Comparative content"),
+          column(width = 12, plotlyOutput("SA_by_date_line_comp"))
+
+        )
   #      fluidRow(tableOutput("tbl"))
         ),
       tabItem(tabName = "individual",
