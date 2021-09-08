@@ -814,5 +814,43 @@ output$ACF2_large <- renderPlot({
   p
 })
 
+
+##################### FIFTH OUTPUT TAB - " Principal compomnentn analysis"
+# Biplot chart
+output$PCA <- renderPlot({
+  query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
+  model <- cluster_comp(query_in)
+  p <- ggbiplot(model, labels = rownames(model$scores) )
+  p + ggtitle("Principal Components Analysis")
+})
+# Scree chart
+output$PCA_scree <-renderPlot({
+  query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
+
+  model <- cluster_comp(query_in)
+  #      q <- ggplot(model) + geom_bar(stat = "identity")
+  p <- plot(model, main = "PCA scree", las = 2)
+})
+# Factor analysis
+output$PCA_tab <- DT::renderDT({
+  query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
+  cluster_frame <- unique(query_in[,c('ext_name', 'orientation', 'country')])
+  print("PCA_tab")
+  cluster_agg <- aggregate(query_in[,c(7:23)], by = list(ext_name=query_in$ext_name), sum)
+  cluster_merge <- merge(cluster_agg, cluster_frame)
+  cluster_merge <- cluster_merge[,2:18]
+  cluster_merge <- cluster_merge[,apply(cluster_merge, 2, var, na.rm = TRUE) !=0]
+  cluster_analysis <- factanal(cluster_merge, factors = input$iPCAcount)
+  PCA_tab_out <- cluster_analysis$loadings
+  r_l <- rownames(PCA_tab_out)
+  c_l <- colnames(PCA_tab_out)
+  PCA_tab_out_df <- as.data.frame(matrix(PCA_tab_out, length(rownames(PCA_tab_out)), length(colnames(PCA_tab_out))))
+  PCA_tab_out_df <- round_df(PCA_tab_out_df, 3)
+  rownames(PCA_tab_out_df) <- rownames(PCA_tab_out)
+  colnames(PCA_tab_out_df) <- colnames(PCA_tab_out)
+  round_df(PCA_tab_out_df, 4)
+},
+caption = "Principal Component Analysis - Factors Analysis",
+options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = FALSE))
 #######################
 })
