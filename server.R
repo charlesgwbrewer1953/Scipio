@@ -613,7 +613,7 @@ output$reduced_Table <- DT::renderDT({
 
   ) # This is being printed
 
-#####################ADDED
+##################### FIRST OUTPUT TAB - "Comparison"
 output$SA_by_date_line_comp <- renderPlotly({
   sumValsA <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
   sumValsA <-mutate(sumValsA, Selection = "1")
@@ -648,17 +648,67 @@ output$SA_by_date_line_comp <- renderPlotly({
 })
 
 
-#####################
+##################### SECOND OUTPUT TAB - "Individual"
+
+output$SA_by_date_line <- renderPlotly({
+  z <- c(input$aColumn, input$aLine, input$aPoint)
+  sumVals <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
+  gtitle <- paste("Time series analysis / \nMoving average 1 \nComparison", input$ismooth)
+  p <- time_Series_graph(sumVals, gtitle, "red", "firebrick4", point_fill = "deeppink")
+  p
+})
+# Second choice line chart
+output$SA_by_date_line2 <- renderPlotly({
+  sumVals <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
+  ggtitle <- paste(c("Time series analysis Moving average ", input$ismooth))
+  p <- time_Series_graph(sumVals, gtitle, "blue", "deepskyblue", point_fill = "dodgerblue4")
+  p
+})
+
+
+#########################
+# totVals
+output$SA_summary_by_period <-renderPlotly({
+  print("SA_s_b_P")
+  x_tick_titles <- ("this")
+  q <- ggplot(totVals(), aes(x = Factor, y = Value, fill = group1, colour = "red"))+
+    theme(axis.text.x = element_text(angle = 90))+
+    ggtitle("Period analysis / Sentiment") +
+    scale_x_discrete(limits = c('PosNeg', 'ensemble_posneg', 'afinn_score', 'bing_score', 'syuzhet_score', 'loughran_frame_positive', 'loughran_frame_negative',
+                                'nrc_score_positive', 'nrc_score_negative','Sentiment spectrum',
+                                'nrc_score_anger', 'nrc_score_anticipation', 'nrc_score_disgust', 'nrc_score_fear',
+                                'nrc_score_joy',
+                                'nrc_score_sadness', 'nrc_score_surprise', 'nrc_score_trust', 'Financial',
+                                'loughran_frame_constraining', 'loughran_frame_litigious', 'loughran_frame_uncertain'
+    )) +
+    geom_bar(stat = "identity", colour = "black") +
+    theme(legend.position = "none")
+
+  q
+})
+
+# totVals
+output$SA_summary_by_period2 <-renderPlotly({
+  print("server 5 - SA_summary_by_period")
+  x_tick_titles <- ("this")
+  q <- ggplot(totVals2(), aes(x = Factor, y = Value, fill = group1, colour = "blue"))+
+    theme(axis.text.x = element_text(angle = 90))+
+    ggtitle("Period analysis / Sentiment 2") +
+    scale_x_discrete(limits = c('PosNeg', 'ensemble_posneg', 'afinn_score', 'bing_score', 'syuzhet_score', 'loughran_frame_positive', 'loughran_frame_negative',
+                                'nrc_score_positive', 'nrc_score_negative','nrc',
+                                'nrc_score_anger', 'nrc_score_anticipation', 'nrc_score_disgust', 'nrc_score_fear',
+                                'nrc_score_joy',
+                                'nrc_score_sadness', 'nrc_score_surprise', 'nrc_score_trust', 'loughran',
+                                'loughran_frame_constraining', 'loughran_frame_litigious', 'loughran_frame_uncertain'
+    )) +
+    geom_bar(stat = "identity", colour = "black") +
+    theme(legend.position = "none")
+
+
+})
 
 
 
-output$Selections <- DT::renderDT({
-  print("server 4 - generate output")
-  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput, input$dateRange[1], input$dateRange[2] )
-  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2, input$dateRange[1], input$dateRange[2] )
-  dataSelection <- rbind(v1, v2)
-  query_out_List
-},
-caption = "Correlation Statistics",
-options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = TRUE))
+
+#######################
 })
