@@ -667,7 +667,7 @@ output$SA_by_date_line2 <- renderPlotly({
 
 
 #########################
-# totVals
+
 output$SA_summary_by_period <-renderPlotly({
   print("SA_s_b_P")
   x_tick_titles <- ("this")
@@ -687,7 +687,6 @@ output$SA_summary_by_period <-renderPlotly({
   q
 })
 
-# totVals
 output$SA_summary_by_period2 <-renderPlotly({
   print("server 5 - SA_summary_by_period")
   x_tick_titles <- ("this")
@@ -707,8 +706,113 @@ output$SA_summary_by_period2 <-renderPlotly({
 
 })
 
+######################  THIRD OUTPUT TAB - "Correlation"
+
+########  Correlation plot
+output$SA_correlation <- renderPlotly({
+  print("server 5 - SA_correlation")
+  sumValsA <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
+  sumValsA <- mutate(sumValsA, SelectionA = "Selection 1")
+  sumValsA <- mutate(sumValsA, rank_SFactorA = rank(factorValue))
+  sumValsB <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
+  sumValsB <- mutate(sumValsB, SelectionB = "Selection 2")
+  sumValsB <- mutate(sumValsB, rank_SFactorB = rank(factorValue))
+  sumValsX <- sumValsA %>%
+    inner_join(sumValsB, by = c("item_date_published", "factorName"))
+  sumValsX$index <- tibble::rowid_to_column(sumValsX, "index")
 
 
+
+
+  p <- ggscatter(sumValsX, x = "factorValue.x", y = "factorValue.y",
+                 cor.method = input$icorrelate,
+                 conf.int = input$iconfidence,
+                 add = switch(input$ismooth, "None" = "", "loess" = "loess", "lm" = "reg.line"),
+                 add.params = list(color = "blue"),
+                 star.plot = input$aStar,
+
+  ) +
+    ggtitle(paste("Correlation")) +
+    xlab("Selection 1") + ylab("Selection 2") +
+    theme(legend.title = element_text(size = 8),
+          axis.title.x = element_text(size = 8),
+          axis.text.x = element_text(size = 8),
+          axis.title.y = element_text(size = 8),
+          axis.text.y = element_text(size = 8),
+          plot.title = element_text(size = 12)
+    )
+
+  if(isTRUE(input$aPoint)){(p <- p + geom_point(size = 4, shape = 22, colour = "darkgreen", fill = "darkseagreen"))}
+  #       p + stat_cor( method = input$icorrelate, aes(label = ..r.label.., label.x = 3, label.y = 30),output.type = "expression", p.accuracy = 0.001, r.accuracy = 0.001)
+  return(p)
+})  ######  End of correlation plot
+
+
+
+#######  Correlation statistics table
+
+output$corrStats <- DT::renderDataTable({
+  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput )
+  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2 )
+  s <- c(input$icorrelate, input$icorr.alternative)
+
+  sumValsA <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
+  sumValsA <- mutate(sumValsA, SelectionA = "Selection 1")
+  sumValsA <- mutate(sumValsA, rank_SFactorA = rank(factorValue))
+  sumValsB <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
+  sumValsB <- mutate(sumValsB, SelectionB = "Selection 2")
+  sumValsB <- mutate(sumValsB, rank_SFactorB = rank(factorValue))
+  sumValsX <- sumValsA %>%
+    inner_join(sumValsB, by = c("item_date_published", "factorName"))
+  sumValsX$index <- tibble::rowid_to_column(sumValsX, "index")
+  #        t <- cor(x = sumValsX$factorValue.x, y = sumValsX$factorValue.y, method = s)
+  correlation_result <- cor.test(sumValsX$factorValue.x, sumValsX$factorValue.y,
+                                 method = input$icorrelate, alternative = input$icorr.alternate)
+
+  method <- correlation_result$method
+  alternative <- correlation_result$alternative
+  statistic <-  round_df(correlation_result$statistic, 4)
+  p.value <- round_df(correlation_result$p.value,4)
+  estimate <- round_df(correlation_result$estimate,4)
+  ifelse(input$icorrelate == "pearson", conf.int <- paste(round_df( correlation_result$conf.int[1:1], 4), "\n",
+                                                          round_df(correlation_result$conf.int[1:2],4)),
+         conf.int <- NA)
+
+
+  cor.text <- as.data.frame(do.call(rbind,
+                                    list( method, alternative,statistic,
+                                          p.value, estimate, conf.int)))
+  row.names(cor.text) <- c( "Method", "Alternative","Statistic", "p-value", "estimate", "conf int")
+  if(input$icorrelate == "pearson"){cor.text <- select(cor.text, V2)}
+  cor.text #<- round_df(cor.text, 4)
+},
+caption = "Correlation Statistics",
+options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = FALSE))
+
+####################### FOURTH OUTPUT TAB - "Autocorrelation"
+
+output$ACF1_large <- renderPlot({
+  v1 <- c(input$isource,input$isourcetype, input$icountry,input$iregion,  input$iorientation, input$itextinput )
+  v2 <- c(input$isource2, input$isourcetype,input$icountry2, input$iregion2, input$iorientation2, input$itextinput2 )
+  s <- c(input$icorrelate, input$icorr.alternative)
+
+  sumVals <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
+  print("ACF_1 large")
+  p <- ggplot.corr(sumVals$factorValue, lag.max = 124, ci = 0.95, large.sample.size = TRUE, horizontal = TRUE, title_line = "Selection 1") +
+    ggtitle("Autocorrelation / Selection 1")
+
+  p
+})
+
+output$ACF2_large <- renderPlot({
+
+  sumVals <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
+  print("ACF2_large")
+  p <- ggplot.corr(sumVals$factorValue, lag.max = 124, ci = 0.95, large.sample.size = TRUE, horizontal = TRUE, title_line = "Selection 2") +
+    ggtitle("Autocorrelation / Selection 2")
+
+  p
+})
 
 #######################
 })
