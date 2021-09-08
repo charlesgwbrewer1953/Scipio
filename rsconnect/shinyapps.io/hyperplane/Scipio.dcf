@@ -1,0 +1,12 @@
+name: Scipio
+title: Scipio
+username:
+account: hyperplane
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4604624
+bundleId: 5008066
+url: https://hyperplane.shinyapps.io/Scipio/
+when: 1631016705.09632
+asMultiple: FALSE
+asStatic: FALSE

@@ -177,16 +177,16 @@ dashboardPage(
     dashboardBody(
       tabItems(
         tabItem(tabName = "comparison",
-        fluidRow(
-          h4("Comparison chart"),
-              #  tableOutput("date_lookup"),
-#                DT::dataTableOutput("reduced_Table")
-                 ),
+#         fluidRow(
+#           h4("Comparison chart"),
+#               #  tableOutput("date_lookup"),
+# #                DT::dataTableOutput("reduced_Table")
+#                  ),
         fluidRow(
           h4("Comparative content"),
             plotlyOutput("SA_by_date_line_comp"))
 
-        )
+
   #      fluidRow(tableOutput("tbl"))
         ),
       tabItem(tabName = "individual",
@@ -234,7 +234,7 @@ dashboardPage(
       tabItem(tabName = "source",
               h4("Source"),
                 DT::dataTableOutput("tbl")
-      )
+      ))
               )) # End of tabItem()# End of tabItem()
     # ) #End of tabItems
     #
