@@ -852,5 +852,21 @@ output$PCA_tab <- DT::renderDT({
 },
 caption = "Principal Component Analysis - Factors Analysis",
 options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = FALSE))
+#################### SIXTH OUTPUT TAB - "Source"
+output$tbl <- DT::renderDT({
+  print("Final table")
+  stories1 <- rssSelection(query_out_Date(), input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput)
+  stories2 <- rssSelection(query_out_Date(), input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itextinput2)
+  stories <- rbind(stories1, stories2)
+  stories
+},
+options  = list(scrollX = TRUE,
+                lengthChange = TRUE,
+                columnDefs = list(list(width = '800px', targets = 1:4))
+))
+
+
+
+
 #######################
 })
