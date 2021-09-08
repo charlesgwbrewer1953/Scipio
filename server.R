@@ -493,8 +493,24 @@ query_out_Date <- reactive({
 
   print("SERVER - query_out_Date")
 
+  ############ New addition
+
+  action_list_read <- check_dates2(input$dateRange[1], input$dateRange[2])
+  # Retrieve records for analysis
+
+  if(action_list_read$Action == TRUE){
+    outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+    data_selection_frame <<- rbind(data_selection_frame, read_Remote(outSeq))
+    data_selection_frame <<- unique(data_selection_frame)
+  }
+  red_Tab <- dplyr::filter(data_selection_frame, item_date_published >= input$dateRange[1])
+  red_Tab <- dplyr::filter(data_selection_frame, item_date_published <= input$dateRange[2])
+
+
+  ############
+
   ### Insert new section here
-  query_out_frame <- filter(data_selection_frame, item_date_published >= input$dateRange[1])
+  query_out_frame <- filter(red_Tab, item_date_published >= input$dateRange[1])
   query_out_frame <- filter(query_out_frame, item_date_published <= input$dateRange[2])
 
   ### End of new section
