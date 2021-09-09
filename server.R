@@ -631,7 +631,7 @@ output$SA_by_date_line_comp <- renderPlotly({
     theme(legend.position = c(0,0)) +
     geom_smooth(method = input$ismooth, fullrange = TRUE,  show.legend = TRUE,se = input$iconfidence,
                 level = input$iconfidenceLevel, aes(colour = Selection)) +
-    ggtitle(paste("Time series analysis", "No R/A")) +
+    ggtitle(paste("Time series analysis","\nR/A = ", input$dateGrouping)) +
     theme(legend.title = element_text(size = 8),
           legend.position = c(0,0),
           axis.title.x = element_text(size = 8),

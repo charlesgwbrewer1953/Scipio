@@ -219,8 +219,6 @@ dashboardPage(
               )
       ),
 
-
-
       tabItem(tabName = "cluster",
               fluidRow(
                 h4("Principal Components"),
