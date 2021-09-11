@@ -54,10 +54,7 @@ dashboardPage(
                     label = "Selection 1",
                     tags$h3("Selection 1"),
 
-                    selectizeInput("isourcetype",
-                                   "Source Type 1",
-                                   choices = rss.SourceTypes,
-                                   multiple = TRUE),
+
                     selectizeInput("icountry",
                                    "Country 1",
                                    choices = rss.Countries,
@@ -68,6 +65,10 @@ dashboardPage(
                     selectizeInput("iorientation",
                                    "Orientation 1",
                                    choices = rss.Orientation,
+                                   multiple = TRUE),
+                    selectizeInput("isourcetype",
+                                   "Source Type 1",
+                                   choices = rss.SourceTypes,
                                    multiple = TRUE),
                     selectizeInput("iSentimentFactor",
                                    "Sentiment factor 1",
@@ -160,7 +161,7 @@ dashboardPage(
                     menuItem("Comparison", tabName = "comparison", icon = icon("balance-scale-left")),
                     menuItem("Individual", tabName = "individual", icon = icon("chart-line")),
                     menuItem("Correlation", tabName = "correlation", icon = icon("chart-line")),
-                    menuItem("Autocorrelation", tabName = "autocorr", icon = icon("chart-bar")),
+#                    menuItem("Autocorrelation", tabName = "autocorr", icon = icon("chart-bar")),
                     menuItem("Cluster", tabName = "cluster", icon = icon("cogs")),
                     menuItem("Source", tabName = "source", icon = icon("dashboard"))
                   )
@@ -184,7 +185,12 @@ dashboardPage(
 #                  ),
         fluidRow(
           h4("Comparative content"),
-            plotlyOutput("SA_by_date_line_comp"))
+            plotlyOutput("SA_by_date_line_comp")),
+        fluidRow(
+          h4("Selection"),
+            tableOutput("analysisStats")
+
+        )
 
 
   #      fluidRow(tableOutput("tbl"))

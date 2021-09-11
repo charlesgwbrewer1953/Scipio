@@ -146,7 +146,7 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
-  ifelse(is.null(Orientation), rssSelected <- rssSelected,
+  ifelse(is.null(Orientation),  rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Orientation == orientation))
   ifelse(is.null(SourceType), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, SourceType == SourceType))
@@ -577,8 +577,11 @@ list_head_DB <- reactive({
 
 ##########
 #
-#Output functions
-#
+#     ########   ######    ######   ######   #    #   #   ######   ######
+#     #          #     #   #    #   #    #   #    #   #   #        #
+#     #    ##    ####      ######   ######   ######   #   #        ######
+#     #     #    #    #    #    #   #        #    #   #   #             #
+#     ########   #     #   #    #   #        #    #   #   ######   ######
 #
 ##########
 
@@ -645,6 +648,37 @@ output$SA_by_date_line_comp <- renderPlotly({
   if(isTRUE(input$aPoint)){(p <- p + geom_point(size = 4, shape = 22, colour = "darkblue", fill = "azure"))}
   p + theme(legend.position = c(0.1, 0.1))
   p
+})
+
+output$analysisStats <- renderTable({
+#browser()
+src1 <- nrow( dplyr::filter(sumVals()))
+src2 <- nrow(dplyr::filter(sumVals2()))
+
+outputA <- ifelse(is.null(input$icountry), "All",input$icountry)
+outputB <- ifelse(is.null(input$iregion), "All",input$iregion)
+outputC <- ifelse(is.null(input$iorientation), "All",input$iorientation)
+outputD <- ifelse(is.null(input$isourcetype), "All",input$isourcetype)
+outputE <- ifelse(is.null(input$itextinput), "All", input$itextinput)
+outputF <- src1
+outputL1 <- c(outputA, outputB, outputC, outputD, outputE, outputF)
+
+outputA2 <- ifelse(is.null(input$icountry2), "All",input$icountry2)
+outputB2 <- ifelse(is.null(input$iregion2), "All",input$iregion2)
+outputC2 <- ifelse(is.null(input$iorientation2), "All",input$iorientation2)
+outputD2 <- ifelse(is.null(input$isourcetype2), "All",input$isourcetype2)
+outputE2 <- ifelse(is.null(input$itextinput2), "All", input$itextinput2)
+outputF2 <- src2
+
+outputL2 <- c(outputA2, outputB2, outputC2, outputD2, outputE2, outputF2)
+
+outputX <- rbind(outputL1, outputL2)
+#outputX <- data.frame(Country = outputA, Region = outputB, Orientation= outputC, Source =  outputD, Text = outputE)
+# outputX <- data.frame(Country = "UKX", Region = "AsaiX", Orientation= "centre", Source =  "Press", Text = "Textexample")
+print(outputX)
+rownames(outputX) <- c("Sel 1", "Sel 2")
+colnames(outputX) <- c("Country", "Region", "Orient", "Source", "Text", "Stories")
+outputX
 })
 
 
