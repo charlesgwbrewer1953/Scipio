@@ -401,6 +401,7 @@ query_out_Date2 <- function(){
 sumVals <-  reactive({
   print("server 3 - start of reactive functions")
   query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
+  print(paste("Analysis rows 1 ",nrow(query_in)))
   sumVals_rtn <- f.sumVals(query_in)
   sumVals_rtn
 
@@ -409,6 +410,7 @@ sumVals <-  reactive({
 sumVals2 <-  reactive({
   query_in <- rssSelection(query_out_Date(), input$isource2, input$iorientation2,input$isourcetype2, input$icountry2, input$iregion2, input$itextinput2)
   sumVals_rtn <- f.sumVals(query_in)
+  print(paste("Analysis rows 2 ",nrow(query_in)))
   sumVals_rtn
 })
 
