@@ -19,6 +19,8 @@ dbListTables(conR)
 global_start_date <- Sys.Date()
 global_end_date <- Sys.Date()
 first_pass = TRUE
+story_Rows <- 0
+story_Rows2 <- 0
 data_selection_frame <- tibble(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
                                    country = character() , region = character(),
                                    syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),

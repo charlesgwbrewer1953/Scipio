@@ -144,18 +144,25 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
   print("rssSelection() 141")
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
+  print(paste("Function: rssSelection entry  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
+  print(paste("Function: rssSelection S1  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Orientation),  rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Orientation == orientation))
+  print(paste("Function: rssSelection S2  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(SourceType), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, SourceType == SourceType))
+  print(paste("Function: rssSelection S3  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Country), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Country  == country))
+  print(paste("Function: rssSelection S4  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Region), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Region == Region))
+  print(paste("Function: rssSelection S5  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Topic), rssSelected <- rssSelected,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
+  print(paste("Function: rssSelection S6  nrows() = ", nrow(rssSelected) ))
  print("rssSelected")
 
    return(rssSelected)
@@ -401,6 +408,7 @@ query_out_Date2 <- function(){
 sumVals <-  reactive({
   print("server 3 - start of reactive functions")
   query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
+  story_Rows <<- nrow(query_in)
   print(paste("Analysis rows 1 ",nrow(query_in)))
   sumVals_rtn <- f.sumVals(query_in)
   sumVals_rtn
@@ -409,6 +417,7 @@ sumVals <-  reactive({
 
 sumVals2 <-  reactive({
   query_in <- rssSelection(query_out_Date(), input$isource2, input$iorientation2,input$isourcetype2, input$icountry2, input$iregion2, input$itextinput2)
+  story_Rows2 <<- nrow(query_in)
   sumVals_rtn <- f.sumVals(query_in)
   print(paste("Analysis rows 2 ",nrow(query_in)))
   sumVals_rtn
@@ -620,10 +629,11 @@ output$reduced_Table <- DT::renderDT({
 
 ##################### FIRST OUTPUT TAB - "Comparison"
 output$SA_by_date_line_comp <- renderPlotly({
+#  browser()
   sumValsA <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
-  sumValsA <-mutate(sumValsA, Selection = "1")
+  sumValsA <-mutate(sumValsA, Selection = "S1")
   sumValsB <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
-  sumValsB <-mutate(sumValsB, Selection = "2")
+  sumValsB <-mutate(sumValsB, Selection = "S2")
   sumVals <- rbind(sumValsA, sumValsB)
   if(isTRUE(input$iPosNegNorm)){
     sumVals$factorValue <- sumVals$factorValue * posneg(sumVals$factorValue)
@@ -661,8 +671,8 @@ outputA <- ifelse(is.null(input$icountry), "All",input$icountry)
 outputB <- ifelse(is.null(input$iregion), "All",input$iregion)
 outputC <- ifelse(is.null(input$iorientation), "All",input$iorientation)
 outputD <- ifelse(is.null(input$isourcetype), "All",input$isourcetype)
-outputE <- ifelse(is.null(input$itextinput), "All", input$itextinput)
-outputF <- src1
+outputE <- ifelse(is.null(input$itextinput)|is.na(input$itextinput)|input$itextinput=="", "All", input$itextinput)
+outputF <-  story_Rows
 outputL1 <- c(outputA, outputB, outputC, outputD, outputE, outputF)
 
 outputA2 <- ifelse(is.null(input$icountry2), "All",input$icountry2)
@@ -670,8 +680,7 @@ outputB2 <- ifelse(is.null(input$iregion2), "All",input$iregion2)
 outputC2 <- ifelse(is.null(input$iorientation2), "All",input$iorientation2)
 outputD2 <- ifelse(is.null(input$isourcetype2), "All",input$isourcetype2)
 outputE2 <- ifelse(is.null(input$itextinput2), "All", input$itextinput2)
-outputF2 <- src2
-
+outputF2 <- story_Rows2
 outputL2 <- c(outputA2, outputB2, outputC2, outputD2, outputE2, outputF2)
 
 outputX <- rbind(outputL1, outputL2)
@@ -693,6 +702,8 @@ output$SA_by_date_line <- renderPlotly({
   p <- time_Series_graph(sumVals, gtitle, "red", "firebrick4", point_fill = "deeppink")
   p
 })
+
+
 # Second choice line chart
 output$SA_by_date_line2 <- renderPlotly({
   sumVals <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
@@ -891,8 +902,8 @@ options = list(searching = FALSE, paging = FALSE, info = FALSE, ordering = FALSE
 #################### SIXTH OUTPUT TAB - "Source"
 output$tbl <- DT::renderDT({
   print("Final table")
-  stories1 <- rssSelection(query_out_Date(), input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput)
-  stories2 <- rssSelection(query_out_Date(), input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itextinput2)
+  stories1 <- rssSelection(query_out_Date(),  input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput)
+  stories2 <- rssSelection(query_out_Date(),  input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itextinput2)
   stories <- rbind(stories1, stories2)
   stories
 },
