@@ -178,18 +178,13 @@ dashboardPage(
     dashboardBody(
       tabItems(
         tabItem(tabName = "comparison",
-#         fluidRow(
-#           h4("Comparison chart"),
-#               #  tableOutput("date_lookup"),
-# #                DT::dataTableOutput("reduced_Table")
-#                  ),
+
         fluidRow(
           h4("Comparative content"),
             plotlyOutput("SA_by_date_line_comp")),
         fluidRow(
           h4("Selection"),
             tableOutput("analysisStats")
-
         )
 
 
@@ -202,10 +197,12 @@ dashboardPage(
                 column(width = 6, plotlyOutput("SA_by_date_line")),
 
                 column(width = 6, plotlyOutput("SA_summary_by_period"))),
+              tableOutput("analysisStatsA"),
               h4("Selection 2"),
               fluidRow(
                 column(width = 6, plotlyOutput("SA_by_date_line2")),
-                column(width = 6, plotlyOutput("SA_summary_by_period2")))
+                column(width = 6, plotlyOutput("SA_summary_by_period2"))),
+              tableOutput("analysisStatsB")
               # End of tab 2
       ),
       tabItem(tabName = "correlation",

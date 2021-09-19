@@ -129,6 +129,8 @@ read_Remote <- function(inserted_date_seq){
                }         # end of for loop
 
   )   # End of withProgress
+  index <- match(data_selection_frame_append$country, src_reg$Country)
+  data_selection_frame_append$region <- src_reg[index, 2]
   return(data_selection_frame_append)
 }  # End of read_Remote()
 
@@ -144,6 +146,7 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
   print("rssSelection() 141")
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
+ # browser()
   print(paste("Function: rssSelection entry  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
@@ -158,7 +161,7 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
          rssSelected <- dplyr::filter(rssSelected, Country  == country))
   print(paste("Function: rssSelection S4  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Region), rssSelected <- rssSelected,
-         rssSelected <- dplyr::filter(rssSelected, Region == Region))
+         rssSelected <- dplyr::filter(rssSelected, Region == region))
   print(paste("Function: rssSelection S5  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Topic), rssSelected <- rssSelected,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
@@ -679,7 +682,7 @@ outputA2 <- ifelse(is.null(input$icountry2), "All",input$icountry2)
 outputB2 <- ifelse(is.null(input$iregion2), "All",input$iregion2)
 outputC2 <- ifelse(is.null(input$iorientation2), "All",input$iorientation2)
 outputD2 <- ifelse(is.null(input$isourcetype2), "All",input$isourcetype2)
-outputE2 <- ifelse(is.null(input$itextinput2), "All", input$itextinput2)
+outputE2 <- ifelse(is.null(input$itextinput2)|is.na(input$itextinput2)|input$itextinput2=="", "All", input$itextinput2)
 outputF2 <- story_Rows2
 outputL2 <- c(outputA2, outputB2, outputC2, outputD2, outputE2, outputF2)
 

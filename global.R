@@ -3,6 +3,7 @@
 # Initialization of variables and initial empty dataframe
 library(tibble)
 library(rlang)
+library(tidyverse)
 rm(list = ls())
 
 print( "Global 0 - About to connect - Server/Remote 1")
@@ -49,4 +50,5 @@ rss.Regions <- sort(rss.Regions[,1])
 rss.Orientation <- unique(dplyr::select(rssSources,Orientation))
 rss.Orientation <- sort(rss.Orientation[,1])
 rss.Lookups <- unique(dplyr::select(rssSources,URL, Orientation))
+src_reg <- unique(dplyr::select(rssSources, Country, Region))
 print(conflicts(detail = TRUE))
