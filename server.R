@@ -96,6 +96,8 @@ read_Remote <- function(inserted_date_seq){
                  #                 print(paste("Loop count", i))
                  inserted_date <-  as.character( gsub("-", "_", inserted_date_seq[i]  ))
                  #                 print(paste("Loop", i, "Inserted date", inserted_date))
+                 msg2 <- paste(i, " of ", length(inserted_date_seq))
+                 incProgress(detail = msg2 )
 
 #                 print(paste("Date under retrieval:", inserted_date))
                  queryScript <- paste0("SELECT ext_name, item_title,item_date_published, orientation, country,
@@ -146,7 +148,7 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
   print("rssSelection() 141")
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
- # browser()
+ # browser()rss
   print(paste("Function: rssSelection entry  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
@@ -167,7 +169,6 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
   print(paste("Function: rssSelection S6  nrows() = ", nrow(rssSelected) ))
  print("rssSelected")
-
    return(rssSelected)
 }
 
@@ -676,7 +677,9 @@ outputC <- ifelse(is.null(input$iorientation), "All",input$iorientation)
 outputD <- ifelse(is.null(input$isourcetype), "All",input$isourcetype)
 outputE <- ifelse(is.null(input$itextinput)|is.na(input$itextinput)|input$itextinput=="", "All", input$itextinput)
 outputF <-  story_Rows
-outputL1 <- c(outputA, outputB, outputC, outputD, outputE, outputF)
+outputG <- ifelse(is.null(input$isource), "All",input$isource)
+outputH <- input$iSentimentFactor
+outputL1 <- c("1", outputH, outputA, outputB, outputC, outputD, outputG, outputE, outputF)
 
 outputA2 <- ifelse(is.null(input$icountry2), "All",input$icountry2)
 outputB2 <- ifelse(is.null(input$iregion2), "All",input$iregion2)
@@ -684,14 +687,16 @@ outputC2 <- ifelse(is.null(input$iorientation2), "All",input$iorientation2)
 outputD2 <- ifelse(is.null(input$isourcetype2), "All",input$isourcetype2)
 outputE2 <- ifelse(is.null(input$itextinput2)|is.na(input$itextinput2)|input$itextinput2=="", "All", input$itextinput2)
 outputF2 <- story_Rows2
-outputL2 <- c(outputA2, outputB2, outputC2, outputD2, outputE2, outputF2)
+outputG2 <- ifelse(is.null(input$isource2), "All",input$isource)
+outputH2 <- input$iSentimentFactor2
+outputL2 <- c("2",outputH2, outputA2, outputB2, outputC2, outputD2, outputG2, outputE2, outputF2)
 
 outputX <- rbind(outputL1, outputL2)
 #outputX <- data.frame(Country = outputA, Region = outputB, Orientation= outputC, Source =  outputD, Text = outputE)
 # outputX <- data.frame(Country = "UKX", Region = "AsaiX", Orientation= "centre", Source =  "Press", Text = "Textexample")
 print(outputX)
 rownames(outputX) <- c("Sel 1", "Sel 2")
-colnames(outputX) <- c("Country", "Region", "Orient", "Source", "Text", "Stories")
+colnames(outputX) <- c("Selection", "Method", "Country", "Region", "Orient", "Type","Source", "Text", "Stories")
 outputX
 })
 

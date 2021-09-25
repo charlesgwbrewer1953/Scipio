@@ -78,6 +78,10 @@ dashboardPage(
                                      "Uncertain- Lo" = "loughran_uncertain", "Negative - Lo" = "loughran_negative","Positive - Lo" = "loughran_positive", "Ensemble +/-" = "ensemble_posneg") ,
                                    multiple = TRUE,
                                    selected = "ensemble_posneg"),
+                    selectizeInput("isource",
+                                   "Source  1",
+                                   choices = rssSources.names,
+                                   multiple = TRUE),
                     textInput("itextinput",
                               "Text selection 1",
                               value = " ")
@@ -112,6 +116,10 @@ dashboardPage(
                                      "Uncertain- Lo" = "loughran_uncertain", "Negative - Lo" = "loughran_negative","Positive - Lo" = "loughran_positive", "Ensemble +/-" = "ensemble_posneg") ,
                                    multiple = TRUE,
                                    selected = "ensemble_posneg"),
+                    selectizeInput("isource",
+                                   "Source  2",
+                                   choices = rssSources.names,
+                                   multiple = TRUE),
                     textInput("itextinput2",
                               "Text selection 2",
                               value = " ")

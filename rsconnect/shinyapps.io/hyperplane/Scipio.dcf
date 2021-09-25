@@ -5,9 +5,9 @@ account: hyperplane
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4604624
-bundleId: 5013082
+bundleId: 5050806
 url: https://hyperplane.shinyapps.io/Scipio/
-when: 1631127181.15603
+when: 1632124718.58643
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: line_chart_2_lines.jpg
