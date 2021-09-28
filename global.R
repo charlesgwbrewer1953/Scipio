@@ -4,6 +4,7 @@
 library(tibble)
 library(rlang)
 library(tidyverse)
+library(RMariaDB)
 rm(list = ls())
 
 print( "Global 0 - About to connect - Server/Remote 1")

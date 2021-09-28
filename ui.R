@@ -11,7 +11,7 @@ library(dashboardthemes)
 library(bslib)
 library(tidyverse)
 library(plotly)
-
+library(RMariaDB)
 library(rlang)
 
 library(DBI)
@@ -70,6 +70,17 @@ dashboardPage(
                                    "Source Type 1",
                                    choices = rss.SourceTypes,
                                    multiple = TRUE),
+                    selectizeInput("iMSMethod",
+                                   "Moving avg method1",
+                                   c("Simple MA" = "SMA", "Exponential MA"= "EMA",
+                                     "Weighted MA" = "WMA", "Double exponential MA" = "DEMA",
+                                     "Zero-lag exponential MA" = "ZLEMA", "Volume wieghted MA" = "VLEMA",
+                                     "Elastic volume-weighted MA" = "EVWMA")),
+                    numericInput("iMA1",
+                                 "Moving avg 1",
+                                 value = 5,
+                                 min = 1,
+                                 max = 100),
                     selectizeInput("iSentimentFactor",
                                    "Sentiment factor 1",
                                    c("Syuzhet" = 'syuzhet', "Afinn" = "afinn","Bing" = "bing", "Anger - nrc" = "nrc_anger","Anticipation - nrc" = "nrc_anticipation","Disgust - nrc" = "nrc_disgust",
@@ -93,10 +104,7 @@ dashboardPage(
                     tooltip = TRUE,
                     label = "Selection 2",
                     tags$h3("Selection 2"),
-                    selectizeInput("isourcetype2",
-                                   "Source Type 2",
-                                   choices = rss.SourceTypes,
-                                   multiple = TRUE),
+
                     selectizeInput("icountry2",
                                    "Country 2",
                                    choices = rss.Countries,
@@ -108,6 +116,21 @@ dashboardPage(
                                    "Orientation 2",
                                    choices = rss.Orientation,
                                    multiple = TRUE),
+                    selectizeInput("isourcetype2",
+                                   "Source Type 2",
+                                   choices = rss.SourceTypes,
+                                   multiple = TRUE),
+                    selectizeInput("iMSMethod2",
+                                   "Moving avg method2",
+                                   c("Simple MA" = "SMA", "Exponential MA"= "EMA",
+                                     "Weighted MA" = "WMA", "Double exponential MA" = "DEMA",
+                                     "Zero-lag exponential MA" = "ZLEMA", "Volume wieghted MA" = "VLEMA",
+                                     "Elastic volume-weighted MA" = "EVWMA")),
+                    numericInput("iMA2",
+                                 "Moving avg 2",
+                                 value = 5,
+                                 min = 1,
+                                 max = 100),
                     selectizeInput("iSentimentFactor2",
                                    "Sentiment factor 2",
                                    c("Syuzhet" = 'syuzhet', "Afinn" = "afinn","Bing" = "bing", "Anger - nrc" = "nrc_anger","Anticipation - nrc" = "nrc_anticipation","Disgust - nrc" = "nrc_disgust",

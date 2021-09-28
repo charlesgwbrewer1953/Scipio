@@ -66,7 +66,7 @@ shinyServer(function(input, output) {
 remote_Connect <- function(){
   print("remote_Connect 65")
   remoteuserpassword <- "m3t1sz"
-  conR <- dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
+  conR <- RMariaDB::dbConnect(RMariaDB::MariaDB(), dbname = 'metis', 'metis', password = remoteuserpassword, host = "178.62.8.181", port = 3306)
   return(conR)
 }
 
