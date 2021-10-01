@@ -649,10 +649,9 @@ output$SA_by_date_line_comp <- renderPlot({
     ggplot(aes(x = item_date_published, y = factorValue, group = Selection, fill = Selection, colour = Selection)) +
     xlab("Story date") + ylab("Factor score") +
     theme(legend.position = c(0,0)) +
-
-    geom_line()+
-   geom_ma(ma_fun = SMA , n =   input$iMA) +
-   geom_smooth(method = input$ismooth, fullrange = TRUE,  show.legend = TRUE,se = input$iconfidence,
+    geom_line() +
+#    geom_ma(ma_fun = input$iMSMethod , n =   input$iMA) +
+    geom_smooth(method = input$ismooth, fullrange = TRUE,  show.legend = TRUE,se = input$iconfidence,
                 level = input$iconfidenceLevel, aes(colour = Selection)) +
     ggtitle(paste("Time series analysis","\nMoving average = ", input$dateGrouping)) +
     theme(legend.title = element_text(size = 8),
