@@ -134,6 +134,7 @@ read_Remote <- function(inserted_date_seq){
   )   # End of withProgress
   index <- match(data_selection_frame_append$country, src_reg$Country)
   data_selection_frame_append$region <- src_reg[index, 2]
+#  dbDisconnect()
   return(data_selection_frame_append)
 }  # End of read_Remote()
 
@@ -650,10 +651,11 @@ output$SA_by_date_line_comp <- renderPlot({
     xlab("Story date") + ylab("Factor score") +
     theme(legend.position = c(0,0)) +
     geom_line() +
-#    geom_ma(ma_fun = input$iMSMethod , n =   input$iMA) +
+    geom_ma(ma_fun = EMA , n = input$iMA1, linetype = 2, show.legend = TRUE) +
+    geom_ma(ma_fun = SMA , n = input$iMA2, linetype = 9, show.legend = TRUE) +
     geom_smooth(method = input$ismooth, fullrange = TRUE,  show.legend = TRUE,se = input$iconfidence,
                 level = input$iconfidenceLevel, aes(colour = Selection)) +
-    ggtitle(paste("Time series analysis","\nMoving average = ", input$dateGrouping)) +
+    ggtitle(paste("Time series analysis","\nMoving average 1 = ", input$iMA1)) +
     theme(legend.title = element_text(size = 8),
           legend.position = c(0,0),
           axis.title.x = element_text(size = 8),
@@ -682,7 +684,11 @@ outputE <- ifelse(is.null(input$itextinput)|is.na(input$itextinput)|input$itexti
 outputF <-  story_Rows
 outputG <- ifelse(is.null(input$isource), "All",input$isource)
 outputH <- input$iSentimentFactor
-outputL1 <- c("1", outputH, outputA, outputB, outputC, outputD, outputG, outputE, outputF)
+outputI <- input$iMSMethod
+outputJ1 <- as.character(input$iMA1)
+outputJ2 <- as.character(input$iMA2)
+outputL1 <- c("1", outputH, outputA, outputB, outputC, outputD, outputG,
+              outputE, outputF, outputI, outputJ1, outputJ2)
 
 outputA2 <- ifelse(is.null(input$icountry2), "All",input$icountry2)
 outputB2 <- ifelse(is.null(input$iregion2), "All",input$iregion2)
@@ -692,14 +698,19 @@ outputE2 <- ifelse(is.null(input$itextinput2)|is.na(input$itextinput2)|input$ite
 outputF2 <- story_Rows2
 outputG2 <- ifelse(is.null(input$isource2), "All",input$isource)
 outputH2 <- input$iSentimentFactor2
-outputL2 <- c("2",outputH2, outputA2, outputB2, outputC2, outputD2, outputG2, outputE2, outputF2)
+outputI  <- input$iMSMethod
+outputJ1 <- as.character(input$iMA1)
+outputJ2 <- as.character(input$iMA2)
+outputL2 <- c("2",outputH2, outputA2, outputB2, outputC2, outputD2, outputG2, outputE2, outputF2,
+              outputI, outputJ1, outputJ2)
 
 outputX <- rbind(outputL1, outputL2)
 #outputX <- data.frame(Country = outputA, Region = outputB, Orientation= outputC, Source =  outputD, Text = outputE)
 # outputX <- data.frame(Country = "UKX", Region = "AsaiX", Orientation= "centre", Source =  "Press", Text = "Textexample")
 print(outputX)
 rownames(outputX) <- c("Sel 1", "Sel 2")
-colnames(outputX) <- c("Selection", "Method", "Country", "Region", "Orient", "Type","Source", "Text", "Stories")
+colnames(outputX) <- c("Selection", "Method", "Country", "Region", "Orient", "Type",
+                       "Source", "Text", "Stories", "MA Method", "MA1", "MA2")
 outputX
 })
 

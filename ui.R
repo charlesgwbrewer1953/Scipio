@@ -39,7 +39,7 @@ dashboardPage(
                   shinyDashboardThemes(theme = "purple_gradient"),
                   dateRangeInput(inputId= 'dateRange',
                                  label = "Date range",
-                                 start = Sys.Date() - 30,
+                                 start = Sys.Date() - 7,
                                  format = "yyyy_mm_dd"),
                   numericInput(inputId = "dateGrouping",
                                "Rolling average ",
