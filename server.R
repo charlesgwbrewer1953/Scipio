@@ -671,8 +671,9 @@ output$SA_by_date_line_comp <- renderPlot({
   p
 })
 
-output$analysisStats <- renderTable({
-#browser()
+output$analysisStats <- renderDataTable({
+
+  #browser()
 src1 <- nrow( dplyr::filter(sumVals()))
 src2 <- nrow(dplyr::filter(sumVals2()))
 

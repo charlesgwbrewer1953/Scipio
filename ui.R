@@ -220,7 +220,7 @@ dashboardPage(
             plotOutput("SA_by_date_line_comp")),
         fluidRow(
           h4("Selection"),
-            tableOutput("analysisStats")
+            dataTableOutput("analysisStats")
         )
 
 
