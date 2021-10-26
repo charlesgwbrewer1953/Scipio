@@ -58,6 +58,7 @@ shinyServer(function(input, output) {
         check_date_list2 <- list(Action = FALSE, start_date = date1, end_date = date2)
       }
     }
+    print("Check date list:")
     print(check_date_list2)
 #    print(paste("Action List: Action = ", check_date_list2$Action, "date 1", check_date_list2$start_date, , "date 1", check_date_list2$end_date))
     return(check_date_list2)
@@ -83,6 +84,7 @@ remote_Connect <- function(){
 
 read_Remote <- function(inserted_date_seq){
   print("read_RemoteDb 81")
+  print(inserted_date_seq)
   data_selection_frame_append <- data.frame(ext_name = character(), item_title = character(), item_date_published = character(), orientation = character(),
                                             country = character() , region = character(),
                                             syuzhet_score = numeric(), afinn_score = numeric(), bing_score  = numeric(),
@@ -151,25 +153,25 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
   # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
  # browser()rss
-  print(paste("Function: rssSelection entry  nrows() = ", nrow(rssSelected) ))
+#  print(paste("Function: rssSelection entry  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
-  print(paste("Function: rssSelection S1  nrows() = ", nrow(rssSelected) ))
+#  print(paste("Function: rssSelection S1  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Orientation),  rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Orientation == orientation))
-  print(paste("Function: rssSelection S2  nrows() = ", nrow(rssSelected) ))
+#  print(paste("Function: rssSelection S2  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(SourceType), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, SourceType == SourceType))
-  print(paste("Function: rssSelection S3  nrows() = ", nrow(rssSelected) ))
+#  print(paste("Function: rssSelection S3  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Country), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Country  == country))
-  print(paste("Function: rssSelection S4  nrows() = ", nrow(rssSelected) ))
+#  print(paste("Function: rssSelection S4  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Region), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Region == region))
-  print(paste("Function: rssSelection S5  nrows() = ", nrow(rssSelected) ))
+#  print(paste("Function: rssSelection S5  nrows() = ", nrow(rssSelected) ))
   ifelse(is.null(Topic), rssSelected <- rssSelected,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
-  print(paste("Function: rssSelection S6  nrows() = ", nrow(rssSelected) ))
+#  print(paste("Function: rssSelection S6  nrows() = ", nrow(rssSelected) ))
  print("rssSelected")
    return(rssSelected)
 }
@@ -412,7 +414,7 @@ query_out_Date2 <- function(){
 # sumvals - sums values by selected
 
 sumVals <-  reactive({
-  print("server 3 - start of reactive functions")
+  print("sumVals 416")
   query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
   story_Rows <<- nrow(query_in)
   print(paste("Analysis rows 1 ",nrow(query_in)))
@@ -422,6 +424,7 @@ sumVals <-  reactive({
 })
 
 sumVals2 <-  reactive({
+  print("sumVals2 426")
   query_in <- rssSelection(query_out_Date(), input$isource2, input$iorientation2,input$isourcetype2, input$icountry2, input$iregion2, input$itextinput2)
   story_Rows2 <<- nrow(query_in)
   sumVals_rtn <- f.sumVals(query_in)
@@ -432,6 +435,7 @@ sumVals2 <-  reactive({
 
 #totVals - sums values for total period for each SA factor
 totVals <- reactive({
+  print("totVals 437")
   query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry, input$iregion, input$itextinput)
   totVals_rtn <- f.totVals(query_in)
   totVals_rtn
@@ -439,6 +443,7 @@ totVals <- reactive({
 })
 
 totVals2 <- reactive({
+  print("totVals2 445")
   query_in <- rssSelection(query_out_Date(), input$isource2, input$iorientation2,input$isourcetype2, input$icountry2,input$iregion2, input$itextinput2)
   totVals_rtn <- f.totVals(query_in)
   totVals_rtn
@@ -464,12 +469,12 @@ print("FILLER")
 
 
 # Retrieves from remote database current date selection - input to secondary selection
+# NOT BEING EXECUTED
 retrieve_Db <- reactive({
   print("retrieve_Db() 416")
   check_action <- check_dates2(input$dateRange[1], input$dateRange[2]) # Removed while developing function
   if(check_action$Action == TRUE){
     print("retrieve_Db: retrieving")
-    outSeq <- as.character(seq(as.Date(check_action$start_date) , as.Date(check_action$end_date), by = "day"))
     conR <- remote_Connect()         # CRetrieve records for dates
     data_selection_frame_append  <- read_Remote(outSeq)
     dbDisconnect(conR)
@@ -514,7 +519,7 @@ query_out_Date <- reactive({
 
   action_list_read <- check_dates2(input$dateRange[1], input$dateRange[2])
   # Retrieve records for analysis
-
+  print("Line 533 - before read_Remote")
   if(action_list_read$Action == TRUE){
     outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
     data_selection_frame <<- rbind(data_selection_frame, read_Remote(outSeq))
@@ -559,6 +564,7 @@ query_out_Date <- reactive({
 # ##############
 
 data_for_graphs <- function(date1, date2){
+  print("data_for_graphs() 567")
   action_list <- check_dates2(date1, date2)
     if(action_list$Action == TRUE){
       print("retrieve_Db: retrieving")
@@ -583,6 +589,7 @@ data_for_graphs <- function(date1, date2){
 
 # Small return table for test purposes
 list_head_DB <- reactive({
+  print("list_head_db() 591")
   small_out <- data_for_graphs(input$dateRange[1], input$dateRange[2])
 
   small_out$item_date_published <- as.character(small_out$item_date_published)
@@ -635,7 +642,7 @@ output$reduced_Table <- DT::renderDT({
 
 ##################### FIRST OUTPUT TAB - "Comparison"
 output$SA_by_date_line_comp <- renderPlot({
-#  browser()
+  print("output$SA_by_date_line_comp() 645")
   sumValsA <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
   sumValsA <-mutate(sumValsA, Selection = "S1")
   sumValsB <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
@@ -739,7 +746,7 @@ output$SA_by_date_line2 <- renderPlotly({
 #########################
 
 output$SA_summary_by_period <-renderPlotly({
-  print("SA_s_b_P")
+  print("SA_s_b_P 749")
   x_tick_titles <- ("this")
   q <- ggplot(totVals(), aes(x = Factor, y = Value, fill = group1, colour = "red"))+
     theme(axis.text.x = element_text(angle = 90))+
@@ -758,7 +765,7 @@ output$SA_summary_by_period <-renderPlotly({
 })
 
 output$SA_summary_by_period2 <-renderPlotly({
-  print("server 5 - SA_summary_by_period")
+  print("server 5 - SA_summary_by_period 768")
   x_tick_titles <- ("this")
   q <- ggplot(totVals2(), aes(x = Factor, y = Value, fill = group1, colour = "blue"))+
     theme(axis.text.x = element_text(angle = 90))+
@@ -780,7 +787,7 @@ output$SA_summary_by_period2 <-renderPlotly({
 
 ########  Correlation plot
 output$SA_correlation <- renderPlotly({
-  print("server 5 - SA_correlation")
+  print("server 5 - SA_correlation 790")
   sumValsA <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
   sumValsA <- mutate(sumValsA, SelectionA = "Selection 1")
   sumValsA <- mutate(sumValsA, rank_SFactorA = rank(factorValue))
