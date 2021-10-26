@@ -520,8 +520,9 @@ query_out_Date <- reactive({
   action_list_read <- check_dates2(input$dateRange[1], input$dateRange[2])
   # Retrieve records for analysis
   print("Line 533 - before read_Remote")
+
   if(action_list_read$Action == TRUE){
-    outSeq <- seq(as.Date(input$dateRange[1]) , as.Date(input$dateRange[2]), by = "day")
+    outSeq <- seq(as.Date(action_list_read$start_date) , as.Date(action_list_read$end_date), by = "day")
     data_selection_frame <<- rbind(data_selection_frame, read_Remote(outSeq))
     data_selection_frame <<- unique(data_selection_frame)
   }
