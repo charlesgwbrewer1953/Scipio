@@ -721,7 +721,12 @@ rownames(outputX) <- c("Sel 1", "Sel 2")
 colnames(outputX) <- c("Selection", "Method", "Country", "Region", "Orient", "Type",
                        "Source", "Text", "Stories", "MA Method", "MA1", "MA2")
 outputX
-})
+},
+options  = list(scrollX = TRUE,
+                lengthChange = TRUE,
+                autoWidth = TRUE
+)
+)
 
 
 ##################### SECOND OUTPUT TAB - "Individual"
@@ -940,7 +945,8 @@ output$tbl <- DT::renderDT({
 },
 options  = list(scrollX = TRUE,
                 lengthChange = TRUE,
-                columnDefs = list(list(width = '800px', targets = 1:4))
+                autoWidth = TRUE,
+                columnDefs = list(list(width = '300px ', targets = 2))
 ))
 
 
