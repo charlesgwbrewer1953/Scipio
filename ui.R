@@ -134,7 +134,7 @@ dashboardPage(
                     radioButtons("ismooth", "Method",
                                  c("None"= "", "loess" = "loess", "lm" = "lm","gam" = "gam", "glm" = "glm", "MASS:rlm" = "MASS:rlm" )),
 
-                    numericInput("iconfidenceLevel", label = "Confidence value", value = 0.95, min = 0, max = 1, width = "30%" ),
+                    numericInput("iconfidenceLevel", label = "Confidence value", value = 0.95, min = 0, max = 1, step = 0.05, width = "30%" ),
                     checkboxInput("iconfidence", label = "On", FALSE),
                     tags$h3("Correlation"),
                     selectizeInput("icorrelate", label = "Method", c("pearson", "kendall", "spearman"), multiple = FALSE),

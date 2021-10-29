@@ -16,7 +16,7 @@ library(tidyquant)
 shinyServer(function(input, output) {
 
   print("server 1 - Set up db connect")
-   # # # browser()
+
   remoteuserpassword <- "m3t1sz"
   conR <- dbConnect(RMariaDB::MariaDB(),
                     dbname = 'metis', 'metis',
@@ -150,28 +150,25 @@ read_Remote <- function(inserted_date_seq){
 # selects data for current
 rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic){
   print("rssSelection() 141")
-  # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published <= end_date)
-  # rssSelected <- rssSelected <- dplyr::filter(rssSelected, item_date_published >= start_date)
- # browser()rss
-#  print(paste("Function: rssSelection entry  nrows() = ", nrow(rssSelected) ))
+
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
-#  print(paste("Function: rssSelection S1  nrows() = ", nrow(rssSelected) ))
+
   ifelse(is.null(Orientation),  rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Orientation == orientation))
-#  print(paste("Function: rssSelection S2  nrows() = ", nrow(rssSelected) ))
+
   ifelse(is.null(SourceType), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, SourceType == SourceType))
-#  print(paste("Function: rssSelection S3  nrows() = ", nrow(rssSelected) ))
+
   ifelse(is.null(Country), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Country  == country))
-#  print(paste("Function: rssSelection S4  nrows() = ", nrow(rssSelected) ))
+
   ifelse(is.null(Region), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Region == region))
-#  print(paste("Function: rssSelection S5  nrows() = ", nrow(rssSelected) ))
+
   ifelse(is.null(Topic), rssSelected <- rssSelected,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
-#  print(paste("Function: rssSelection S6  nrows() = ", nrow(rssSelected) ))
+
  print("rssSelected")
    return(rssSelected)
 }
@@ -180,9 +177,7 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
 
 round_df <- function(x, digits) {
   print("round_df 164")
-  # round all numeric variables
-  # x: data frame
-  # digits: number of digits to round
+
   numeric_columns <- sapply(x, mode) == 'numeric'
   x[numeric_columns] <-  round(x[numeric_columns], digits)
 }
@@ -588,17 +583,17 @@ data_for_graphs <- function(date1, date2){
 
 ############################ DEVELOPMENT ONLY BELOW
 
-# Small return table for test purposes
-list_head_DB <- reactive({
-  print("list_head_db() 591")
-  small_out <- data_for_graphs(input$dateRange[1], input$dateRange[2])
-
-  small_out$item_date_published <- as.character(small_out$item_date_published)
-  small_out <- filter(small_out, item_date_published >= input$dateRange[1])
-  small_out <- filter(small_out, item_date_published <= input$dateRange[2])
-#  small_out <- dplyr::select(small_out, ext_name, item_date_published)
-  return((small_out))
-})
+# # Small return table for test purposes
+# list_head_DB <- reactive({
+#   print("list_head_db() 591")
+#   small_out <- data_for_graphs(input$dateRange[1], input$dateRange[2])
+#
+#   small_out$item_date_published <- as.character(small_out$item_date_published)
+#   small_out <- filter(small_out, item_date_published >= input$dateRange[1])
+#   small_out <- filter(small_out, item_date_published <= input$dateRange[2])
+# #  small_out <- dplyr::select(small_out, ext_name, item_date_published)
+#   return((small_out))
+# })
 
 ##########
 #
@@ -714,8 +709,6 @@ outputL2 <- c("2",outputH2, outputA2, outputB2, outputC2, outputD2, outputG2, ou
               outputI, outputJ1, outputJ2)
 
 outputX <- rbind(outputL1, outputL2)
-#outputX <- data.frame(Country = outputA, Region = outputB, Orientation= outputC, Source =  outputD, Text = outputE)
-# outputX <- data.frame(Country = "UKX", Region = "AsaiX", Orientation= "centre", Source =  "Press", Text = "Textexample")
 print(outputX)
 rownames(outputX) <- c("Sel 1", "Sel 2")
 colnames(outputX) <- c("Selection", "Method", "Country", "Region", "Orient", "Type",
@@ -724,7 +717,8 @@ outputX
 },
 options  = list(scrollX = TRUE,
                 lengthChange = TRUE,
-                autoWidth = TRUE
+                autoWidth = TRUE,
+                deferRender = TRUE
 )
 )
 
@@ -941,12 +935,18 @@ output$tbl <- DT::renderDT({
   stories1 <- rssSelection(query_out_Date(),  input$isource,input$isourcetype, input$orientation, input$icountry, input$iregion, input$itextinput)
   stories2 <- rssSelection(query_out_Date(),  input$isource2,input$isourcetype2, input$orientation2, input$icountry2, input$iregion2, input$itextinput2)
   stories <- rbind(stories1, stories2)
+
+  colnames(stories) <- c("Source", "Headline", "Date","Orient",  "Country", "S_Score", "A_Score", "B_Score",
+                         "Anger", "Anticip", "Disgust", "Fear", "Joy", "N_Pos", "N_Neg", "Sad", "Trust", "Surprise",
+                         "Constrain", "Litigation", "L_Pos", "L_Neg", "Uncert",
+                         "Hash", "Region", "N_Comp", "L_Comp", "Ensemble", "Region", "Src Type")
   stories
 },
 options  = list(scrollX = TRUE,
+                scrollCollapse = TRUE,
                 lengthChange = TRUE,
                 autoWidth = TRUE,
-                columnDefs = list(list(width = '300px ', targets = 2))
+                columnDefs = list(list(width = '300px ', targets = 2), list(width = '80px', targets = 3))
 ))
 
 
