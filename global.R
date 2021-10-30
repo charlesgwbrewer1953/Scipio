@@ -5,8 +5,8 @@ library(tibble)
 library(rlang)
 library(tidyverse)
 library(RMariaDB)
-rm(list = ls())
-
+# rm(list = ls())
+options(encoding = "UTF-8")
 print( "Global 0 - About to connect - Server/Remote 1")
 # Establish connection to Digital Ocean (remote) database
 print("Global 1 - Pre creation of conR")

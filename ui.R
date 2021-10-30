@@ -27,7 +27,7 @@ library(bslib)
 library(dashboardthemes)
 library(DT)
 library(cowplot)
-
+options(encoding = "UTF-8")
 dashboardPage(
   skin = "green",
     dashboardHeader(
@@ -125,7 +125,8 @@ dashboardPage(
                               "Text selection 2",
                               value = " ")
 
-                  ), #Íourccetype, Country, Region, Orientation, Sentiment factor, Text
+                  ),
+#Íourccetype, Country, Region, Orientation, Sentiment factor, Text
 ##############
                   dropdown(
                     tootip = TRUE,

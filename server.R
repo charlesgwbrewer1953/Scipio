@@ -11,7 +11,7 @@ library(plyr)
 library(dplyr)
 library(RMariaDB)
 library(tidyquant)
-
+options(encoding = "UTF-8")
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
 
@@ -63,6 +63,20 @@ shinyServer(function(input, output) {
 #    print(paste("Action List: Action = ", check_date_list2$Action, "date 1", check_date_list2$start_date, , "date 1", check_date_list2$end_date))
     return(check_date_list2)
   }
+
+
+##############
+#
+#  ######    ######   ####   #####      #####  #####
+#  #     #   #       #    #  #    #     #    # #    #
+#  #     #   #       #    #  #    #     #    # #    #
+#  ######    ###     ######  #    #     #    # ####
+#  ##        #       #    #  #    #     #    # #    #
+#  #  #      #       #    #  #    #     #    # #    #
+#  #    #    ######  #    #  #####      #####  #####
+#
+##############
+
 
 # connectes to remote database
 remote_Connect <- function(){
@@ -153,21 +167,27 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
 
   ifelse(is.null(Source), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Source == ext_name))
+  print(paste("Source: ", nrow(rssSelected)))
 
   ifelse(is.null(Orientation),  rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Orientation == orientation))
+  print(paste("Orientation: ", nrow(rssSelected)))
 
   ifelse(is.null(SourceType), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, SourceType == SourceType))
+  print(paste("Source Type: ", nrow(rssSelected)))
 
   ifelse(is.null(Country), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Country  == country))
-
+  print(paste("Country: ", nrow(rssSelected)))
+#  browser()
   ifelse(is.null(Region), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Region == region))
+  print(paste("Region: ", nrow(rssSelected)))
 
   ifelse(is.null(Topic), rssSelected <- rssSelected,
          rssSelected<- dplyr::filter(rssSelected, str_detect(rssSelected[,"item_title"], regex(Topic, ignore_case = TRUE))))
+  print(paste("Topic: ", nrow(rssSelected)))
 
  print("rssSelected")
    return(rssSelected)
@@ -410,7 +430,7 @@ query_out_Date2 <- function(){
 
 sumVals <-  reactive({
   print("sumVals 416")
-  query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry,input$iregion, input$itextinput)
+  query_in <- rssSelection(query_out_Date(), input$isource, input$iorientation,input$isourcetype, input$icountry, input$iregion, input$itextinput)
   story_Rows <<- nrow(query_in)
   print(paste("Analysis rows 1 ",nrow(query_in)))
   sumVals_rtn <- f.sumVals(query_in)
@@ -464,7 +484,7 @@ print("FILLER")
 
 
 # Retrieves from remote database current date selection - input to secondary selection
-# NOT BEING EXECUTED
+#  BEING EXECUTED by tab 3 or 4
 retrieve_Db <- reactive({
   print("retrieve_Db() 416")
   check_action <- check_dates2(input$dateRange[1], input$dateRange[2]) # Removed while developing function
