@@ -11,7 +11,9 @@ library(plyr)
 library(dplyr)
 library(RMariaDB)
 library(tidyquant)
+Sys.setlocale('LC_ALL','UTF-8')
 options(encoding = "UTF-8")
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
 
@@ -161,8 +163,21 @@ read_Remote <- function(inserted_date_seq){
 #
 ##########
 
+  ##############
+  #
+  #  #####    ######  #      #####    #####  #####
+  #  #        #       #      #        #        #
+  #  #        #       #      #        #        #
+  #  ######   ###     #      ###      #        #
+  #       #   #       #      #        #        #
+  #       #   #       #      #        #        #
+  #  #####    ######  ###### ######   ######   #
+  #
+  ##############
+
+
 # selects data for current
-rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region, Topic){
+rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region1, Topic){
   print("rssSelection() 141")
 
   ifelse(is.null(Source), rssSelected <- rssSelected,
@@ -180,9 +195,10 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
   ifelse(is.null(Country), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Country  == country))
   print(paste("Country: ", nrow(rssSelected)))
-#  browser()
-  ifelse(is.null(Region), rssSelected <- rssSelected,
-         rssSelected <- dplyr::filter(rssSelected, Region == region))
+   browser()
+
+   ifelse(is.null(Region1), rssSelected <- rssSelected,
+         rssSelected <- dplyr::filter(rssSelected, region %in% Region1))
   print(paste("Region: ", nrow(rssSelected)))
 
   ifelse(is.null(Topic), rssSelected <- rssSelected,

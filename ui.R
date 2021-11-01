@@ -3,7 +3,7 @@
 #
 
 library(shinydashboard)
-Sys.setlocale('LC_ALL','C')
+
 library(shinythemes)
 library(shinyWidgets)
 library(shinysky)
@@ -27,7 +27,10 @@ library(bslib)
 library(dashboardthemes)
 library(DT)
 library(cowplot)
+
+Sys.setlocale('LC_ALL','UTF-8')
 options(encoding = "UTF-8")
+
 dashboardPage(
   skin = "green",
     dashboardHeader(
@@ -123,10 +126,9 @@ dashboardPage(
                                    multiple = TRUE),
                     textInput("itextinput2",
                               "Text selection 2",
-                              value = " ")
+                              value = " ")),
 
-                  ),
-#Íourccetype, Country, Region, Orientation, Sentiment factor, Text
+#Sourccetype, Country, Region, Orientation, Sentiment factor, Text
 ##############
                   dropdown(
                     tootip = TRUE,
