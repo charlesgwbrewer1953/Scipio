@@ -53,5 +53,7 @@ rss.Regions <- sort(rss.Regions[,1])
 rss.Orientation <- unique(dplyr::select(rssSources,Orientation))
 rss.Orientation <- sort(rss.Orientation[,1])
 rss.Lookups <- unique(dplyr::select(rssSources,URL, Orientation))
-src_reg <- unique(dplyr::select(rssSources, Country, Region))
+src_reg <- unique(dplyr::select(rssSources, Country, Region, SourceType ))
+
 print(conflicts(detail = TRUE))
+

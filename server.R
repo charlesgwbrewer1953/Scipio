@@ -152,6 +152,7 @@ read_Remote <- function(inserted_date_seq){
   )   # End of withProgress
   index <- match(data_selection_frame_append$country, src_reg$Country)
   data_selection_frame_append$region <- src_reg[index, 2]
+  data_selection_frame_append$SourceTypeX <- src_reg[index, 3]
 #  dbDisconnect()
   return(data_selection_frame_append)
 }  # End of read_Remote()
@@ -177,7 +178,7 @@ read_Remote <- function(inserted_date_seq){
 
 
 # selects data for current
-rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country, Region1, Topic){
+rssSelection <- function(rssSelected,  Source, Orientation, SourceType1, Country, Region1, Topic){
   print("rssSelection() 141")
 
   ifelse(is.null(Source), rssSelected <- rssSelected,
@@ -188,14 +189,14 @@ rssSelection <- function(rssSelected,  Source, Orientation, SourceType, Country,
          rssSelected <- dplyr::filter(rssSelected, Orientation == orientation))
   print(paste("Orientation: ", nrow(rssSelected)))
 
-  ifelse(is.null(SourceType), rssSelected <- rssSelected,
-         rssSelected <- dplyr::filter(rssSelected, SourceType == SourceType))
+  ifelse(is.null(SourceType1), rssSelected <- rssSelected,
+         rssSelected <- dplyr::filter(rssSelected, SourceTypeX %in% SourceType1))
   print(paste("Source Type: ", nrow(rssSelected)))
 
   ifelse(is.null(Country), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, Country  == country))
   print(paste("Country: ", nrow(rssSelected)))
-   browser()
+
 
    ifelse(is.null(Region1), rssSelected <- rssSelected,
          rssSelected <- dplyr::filter(rssSelected, region %in% Region1))
@@ -560,15 +561,11 @@ query_out_Date <- reactive({
   red_Tab <- dplyr::filter(data_selection_frame, item_date_published >= input$dateRange[1])
   red_Tab <- dplyr::filter(data_selection_frame, item_date_published <= input$dateRange[2])
 
-
-  ############
-
   ### Insert new section here
   query_out_frame <- filter(red_Tab, item_date_published >= input$dateRange[1])
   query_out_frame <- filter(query_out_frame, item_date_published <= input$dateRange[2])
 
-  ### End of new section
-  # Normalize values for ensemble positive / negative
+
 
   query_out_frame$nrc_comp <- query_out_frame$nrc_score_positive - query_out_frame$nrc_score_negative
   query_out_frame$loughran_comp <- query_out_frame$loughran_frame_positive - query_out_frame$loughran_frame_negative
@@ -613,23 +610,6 @@ data_for_graphs <- function(date1, date2){
     return(data_selection_frame <<- unique(data_selection_frame ))
   }
 
-
-
-
-
-############################ DEVELOPMENT ONLY BELOW
-
-# # Small return table for test purposes
-# list_head_DB <- reactive({
-#   print("list_head_db() 591")
-#   small_out <- data_for_graphs(input$dateRange[1], input$dateRange[2])
-#
-#   small_out$item_date_published <- as.character(small_out$item_date_published)
-#   small_out <- filter(small_out, item_date_published >= input$dateRange[1])
-#   small_out <- filter(small_out, item_date_published <= input$dateRange[2])
-# #  small_out <- dplyr::select(small_out, ext_name, item_date_published)
-#   return((small_out))
-# })
 
 ##########
 #
