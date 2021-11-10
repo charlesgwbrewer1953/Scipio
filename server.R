@@ -690,10 +690,9 @@ output$SA_by_date_line_comp <- renderPlot({
   p
 })
 
-output$analysisStats <- renderDataTable({
+output$analysisStats1 <- output$analysisStats2 <- renderDataTable({
 
-  #browser()
-src1 <- nrow( dplyr::filter(sumVals()))
+src1 <- nrow(dplyr::filter(sumVals()))
 src2 <- nrow(dplyr::filter(sumVals2()))
 
 outputA <- ifelse(is.null(input$icountry), "All",input$icountry)
@@ -744,7 +743,7 @@ options  = list(scrollX = TRUE,
 output$SA_by_date_line <- renderPlotly({
   z <- c(input$aColumn, input$aLine, input$aPoint)
   sumVals <- dplyr::filter(sumVals(), factorName %in% input$iSentimentFactor )
-  gtitle <- paste("Time series analysis / \nMoving average 1 \nComparison", input$ismooth)
+  gtitle <- paste("Time series analysis 2 / \nMoving average 1 \nComparison", input$ismooth)
   p <- time_Series_graph(sumVals, gtitle, "red", "firebrick4", point_fill = "deeppink")
   p
 })
@@ -753,7 +752,7 @@ output$SA_by_date_line <- renderPlotly({
 # Second choice line chart
 output$SA_by_date_line2 <- renderPlotly({
   sumVals <- dplyr::filter(sumVals2(), factorName %in% input$iSentimentFactor2 )
-  ggtitle <- paste(c("Time series analysis Moving average ", input$ismooth))
+  gtitle <- paste("Time series analysis 2 / \nMoving average 1 \nComparison", input$ismooth2)
   p <- time_Series_graph(sumVals, gtitle, "blue", "deepskyblue", point_fill = "dodgerblue4")
   p
 })

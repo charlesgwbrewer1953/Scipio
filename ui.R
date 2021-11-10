@@ -234,7 +234,7 @@ dashboardPage(
             plotOutput("SA_by_date_line_comp")),
         fluidRow(
           h4("Selection"),
-            dataTableOutput("analysisStats")
+            dataTableOutput("analysisStats1")
         )
 
 
@@ -252,7 +252,11 @@ dashboardPage(
               fluidRow(
                 column(width = 6, plotlyOutput("SA_by_date_line2")),
                 column(width = 6, plotlyOutput("SA_summary_by_period2"))),
-              tableOutput("analysisStatsB")
+              tableOutput("analysisStatsB"),
+              fluidRow(
+                h4("Selection"),
+                dataTableOutput("analysisStats2")
+              )
               # End of tab 2
       ),
       tabItem(tabName = "correlation",
